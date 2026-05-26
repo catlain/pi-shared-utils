@@ -1,8 +1,31 @@
 # pi-shared-utils
 
-[pi-coding-agent](https://github.com/earendil-works/pi-coding-agent) 扩展生态的共享工具库。提供记忆文件解析、路径常量、设置管理、工具输出截断等基础能力，被 memory、context、shepherd、plan-verify 等 7 个扩展依赖。
+Shared utility library for the [pi](https://github.com/earendil-works/pi-coding-agent) extension ecosystem — memory file parsing, path constants, settings management, tool output truncation, and more. Used by 7+ pi extensions.
 
-## 安装
+## Why You Need It
+
+If you're building a pi extension, you'll inevitably need the same building blocks: reading settings, parsing memory files, truncating tool output, finding agent directories. pi-shared-utils provides these as a single dependency so every extension doesn't reinvent the wheel.
+
+**Used by**: pi-memory, pi-context, pi-shepherd, pi-roadmap, pi-session-analyzer, pi-workflow, and more.
+
+## How It Works
+
+```
+pi-shared-utils provides 6 independent modules:
+
+┌─────────────────────────────────────────────────┐
+│  memory-parser  ── 解析 topic--kw1,kw2.md 文件名  │
+│  paths         ── pi agent 标准路径常量            │
+│  settings      ── settings.json 读写扩展配置段    │
+│  tool-output   ── 工具输出截断（防上下文溢出）    │
+│  agents        ── 子代理定义文件发现              │
+│  ephemeral     ── 会话临时 hint/label 栈          │
+└─────────────────────────────────────────────────┘
+```
+
+Each module is independently importable — use only what you need.
+
+## Installation
 
 ```bash
 pi install git:github.com/catlain/pi-atelier
@@ -111,11 +134,46 @@ const hints = peekHints("recent-files");   // 查看不移除
 const all = drainHints();                   // 取出并清空
 ```
 
-## 测试
+## Best Practices
 
-```bash
-npx vitest run packages/pi-shared-utils/
+### ✅ Recommended
+- Import only the modules you need to keep bundle size small
+- Use `truncatedResult()` for all tool outputs — prevents context overflow
+- Use `paths` constants instead of hardcoding `~/.pi/agent/...`
+- Use `settings` module for any persistent configuration
+
+### ❌ Not Recommended
+- Don't hardcode pi paths — they may change between versions
+- Don't return raw tool output without truncation
+- Don't use `ephemeral` for persistent data — it's session-scoped only
+
+## Limitations
+
+| Limitation | Detail |
+|------------|--------|
+| Memory file format only | Only supports `topic--kw1,kw2.md` naming convention |
+| No validation | Settings reads don't validate schema — caller must handle |
+| Ephemeral is in-memory | Lost on process restart, not persisted to disk |
+| Token estimation | `tool-output` truncates by lines, not by token count |
+
+## Architecture
+
 ```
+pi-shared-utils/
+├── src/
+│   ├── index.ts           # Re-exports all modules
+│   ├── memory-parser.ts   # Memory file name parsing + directory scanning
+│   ├── paths.ts           # Path constants (AGENT_DIR, SETTINGS_PATH, ...)
+│   ├── settings.ts        # settings.json section read/write
+│   ├── tool-output.ts     # Output truncation + truncatedResult helper
+│   ├── agents.ts          # Sub-agent discovery from ~/.pi/agent/agents/
+│   ├── ephemeral.ts       # Session-scoped hint/label stack
+│   └── __tests__/         # Unit tests
+├── package.json
+└── tsconfig.json
+```
+
+**Dependencies**: Zero runtime dependencies (pure Node.js).
 
 ## License
 
