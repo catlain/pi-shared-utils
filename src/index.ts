@@ -49,3 +49,13 @@ export {
 	drainHints,
 	peekLabels,
 } from "./ephemeral";
+
+export {
+	getEffectiveConfig,
+	detectConfigConflicts,
+	getEnabledTools,
+	getDisabledMcpServers,
+	type ConfigConflict,
+	type EffectiveConfigResult,
+	type ToolFilter,
+} from "./project-config";
