@@ -32,5 +32,13 @@
     ],
     "dts": true,
     "clean": true
-  }
+  },
+  "files": [
+    "src/",
+    "README.md",
+    "README.en.md",
+    "tsconfig.json",
+    "vitest.config.ts",
+    "package.json"
+  ]
 }
