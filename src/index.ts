@@ -44,7 +44,9 @@ export {
 } from "./project-config";
 export {
 	getDisabledMcpServers,
+	getDisabledTools,
 	getEnabledTools,
+	isToolDisabled,
 	type ToolFilter,
 } from "./project-tools";
 export {

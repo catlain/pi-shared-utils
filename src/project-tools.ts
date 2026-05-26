@@ -103,6 +103,72 @@ export function getEnabledTools(allTools: string[], cwd: string): string[] {
  * @param cwd - 当前项目目录
  * @returns 去重后的禁用 MCP 服务器名称列表
  */
+/**
+ * 将 glob 模式转为正则（只支持 * 通配符）
+ * "godot_export_*" → /^godot_export_.*$/
+ */
+function globToRegex(pattern: string): RegExp {
+	const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&"); // 转义特殊字符
+	const withStar = escaped.replace(/\*/g, ".*"); // * → .*
+	return new RegExp(`^${withStar}$`);
+}
+
+/**
+ * 检查工具名是否匹配某个模式（精确匹配或 glob）
+ */
+function matchesPattern(toolName: string, patterns: string[]): boolean {
+	for (const pattern of patterns) {
+		if (pattern.includes("*")) {
+			if (globToRegex(pattern).test(toolName)) return true;
+		} else if (toolName === pattern) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * 获取禁用的 MCP 工具列表（三层合并：全局 + 项目 concat，enabled 白名单覆盖）
+ *
+ * 支持精确匹配和 glob 模式（* 通配符）：
+ *   - "godot_launch_editor" — 精确匹配
+ *   - "godot_export_*" — 匹配所有 godot_export_ 开头的工具
+ *
+ * @param cwd - 当前项目目录
+ * @returns 去重后的禁用工具名称模式列表
+ */
+export function getDisabledTools(cwd: string): string[] {
+	const globalMcp = readGlobalSection("mcp");
+	const globalTools: string[] = globalMcp?.tools?.disabled ?? [];
+
+	const projectSettings = readProjectSettings(cwd);
+	const projectMcp = projectSettings?.mcp ?? {};
+	const projectTools: string[] = projectMcp?.tools?.disabled ?? [];
+	const projectEnabled: string[] = projectMcp?.tools?.enabled ?? [];
+
+	// concat 全局 + 项目 disabled
+	const merged = [...globalTools, ...projectTools];
+
+	// 项目级 enabled 白名单覆盖
+	if (projectEnabled.length > 0) {
+		return [...new Set(merged.filter((p) => !projectEnabled.includes(p)))];
+	}
+
+	return [...new Set(merged)];
+}
+
+/**
+ * 检查工具是否应该被禁用
+ *
+ * @param toolName - 工具全名（如 "godot_launch_editor"）
+ * @param cwd - 当前项目目录
+ * @returns true 表示该工具应该被禁用
+ */
+export function isToolDisabled(toolName: string, cwd: string): boolean {
+	const patterns = getDisabledTools(cwd);
+	return matchesPattern(toolName, patterns);
+}
+
 export function getDisabledMcpServers(cwd: string): string[] {
 	const globalMcp = readGlobalSection("mcp");
 	const globalDisabled: string[] = globalMcp.disabled ?? [];
