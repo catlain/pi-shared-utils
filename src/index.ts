@@ -53,3 +53,12 @@ export {
 	patchSettingsSection,
 	setSettingsValue,
 } from "./settings";
+export {
+	listBackups,
+	patchSettingsSectionWithBackup,
+	rollbackSettings,
+	type BackupEntry,
+	type PatchBackupOptions,
+	type PatchBackupResult,
+	type RollbackOptions,
+} from "./settings-backup";
