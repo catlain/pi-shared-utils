@@ -6,9 +6,12 @@ import {
 	getEffectiveConfig,
 	validateConfigSchema,
 	detectConfigConflicts,
+	clearProjectSettingsCache,
+} from "../project-config";
+import {
 	getEnabledTools,
 	getDisabledMcpServers,
-} from "../project-config";
+} from "../project-tools";
 
 const TEST_DIR = join(tmpdir(), "pi-shared-utils-test");
 
@@ -29,6 +32,7 @@ function cleanupDir(dir: string) {
 describe("project-config", () => {
 	beforeEach(() => {
 		cleanupDir(TEST_DIR);
+		clearProjectSettingsCache();
 		mkdirSync(TEST_DIR, { recursive: true });
 	});
 	afterEach(() => {

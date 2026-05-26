@@ -54,11 +54,15 @@ export {
 	getEffectiveConfig,
 	validateConfigSchema,
 	detectConfigConflicts,
-	getEnabledTools,
-	getDisabledMcpServers,
+	clearProjectSettingsCache,
 	type ConfigConflict,
 	type EffectiveConfigResult,
 	type MergeOptions,
 	type SchemaError,
-	type ToolFilter,
 } from "./project-config";
+
+export {
+	getEnabledTools,
+	getDisabledMcpServers,
+	type ToolFilter,
+} from "./project-tools";

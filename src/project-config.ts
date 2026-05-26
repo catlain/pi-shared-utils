@@ -89,7 +89,7 @@ function deepMerge<T extends Record<string, any>>(
 }
 
 /** 读取项目级 settings.json */
-function readProjectSettings(cwd: string): Record<string, any> {
+export function readProjectSettings(cwd: string): Record<string, any> {
 	const projectSettingsPath = join(cwd, ".pi", "settings.json");
 	if (!existsSync(projectSettingsPath)) return {};
 	try {
@@ -99,7 +99,10 @@ function readProjectSettings(cwd: string): Record<string, any> {
 	}
 }
 
-// ── 核心 API ─────────────────────────────────────────────
+/** 清除项目级配置缓存（保留接口，当前为 no-op） */
+export function clearProjectSettingsCache(): void {
+	// 预留，当前无缓存
+}
 
 /**
  * 获取合并后的有效配置（defaults → 全局 → 项目级 deep merge）
@@ -254,47 +257,4 @@ export function validateConfigSchema(
 
 	checkTypes(defaults, projectSection, "");
 	return errors;
-}
-
-/**
- * 获取当前项目启用的工具列表
- *
- * 合并全局 mcp.json 中的工具 + 项目级 .pi/settings.json 中的启用/禁用规则。
- *
- * @param allTools - 全部可用工具 ID 列表（从 MCP 注册结果获取）
- * @param cwd - 当前项目目录
- * @returns 过滤后的工具 ID 列表
- */
-export function getEnabledTools(allTools: string[], cwd: string): string[] {
-	const projectSettings = readProjectSettings(cwd);
-	const toolFilter: ToolFilter = projectSettings?.tools ?? {};
-
-	let tools = [...allTools];
-
-	// 禁用优先
-	if (toolFilter.disabled?.length) {
-		const disabledSet = new Set(toolFilter.disabled);
-		tools = tools.filter(t => !disabledSet.has(t));
-	}
-
-	// 额外启用（可能不在 allTools 里，给调用方自行处理）
-	if (toolFilter.enabled?.length) {
-		const existingSet = new Set(tools);
-		for (const t of toolFilter.enabled) {
-			if (!existingSet.has(t)) tools.push(t);
-		}
-	}
-
-	return tools;
-}
-
-/**
- * 获取当前项目禁用的 MCP 服务器列表
- *
- * @param cwd - 当前项目目录
- * @returns 禁用的 MCP 服务器名称列表
- */
-export function getDisabledMcpServers(cwd: string): string[] {
-	const projectSettings = readProjectSettings(cwd);
-	return projectSettings?.mcp?.disabled ?? [];
 }
