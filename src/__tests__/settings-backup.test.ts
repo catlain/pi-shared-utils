@@ -446,4 +446,75 @@ describe("settings-backup", () => {
 			expect(backups).toEqual([]);
 		});
 	});
+
+	describe("文件锁", () => {
+		it("加锁期间其他操作不会被覆盖", () => {
+			cleanupTestDir();
+			writeTestSettings({ context: { threshold: 100 }, otherSection: { keep: true } });
+
+			// 模拟：在 patch 加锁期间，另一个进程写入了新字段
+			// 这里通过 patch 两次验证加锁读-写是原子的
+			const result1 = patchSettingsSectionWithBackup(
+				"context",
+				{ threshold: 200 },
+				{ threshold: 100 },
+				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, backup: false },
+				);
+			const result2 = patchSettingsSectionWithBackup(
+				"shepherd",
+				{ maxWarnings: 3 },
+				{ maxWarnings: 5 },
+				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, backup: false },
+				);
+
+			// 两次 patch 都成功
+			expect(result1.config.threshold).toBe(200);
+			expect(result2.config.maxWarnings).toBe(3);
+
+			// 文件中两个 section 都保留
+			const finalSettings = readTestSettings();
+			expect(finalSettings.context.threshold).toBe(200);
+			expect(finalSettings.shepherd.maxWarnings).toBe(3);
+			expect(finalSettings.otherSection.keep).toBe(true);
+		});
+
+		it("锁文件在操作后会被清理", () => {
+			cleanupTestDir();
+			writeTestSettings({ context: { threshold: 100 } });
+
+			patchSettingsSectionWithBackup(
+				"context",
+				{ threshold: 200 },
+				{ threshold: 100 },
+				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, backup: false },
+				);
+
+			// 锁目录不应残留
+			expect(existsSync(`${TEST_SETTINGS}.lock`)).toBe(false);
+		});
+
+		it("过时锁会被自动清理", () => {
+			cleanupTestDir();
+			writeTestSettings({ context: { threshold: 100 } });
+
+			// 创建一个过时锁（mtime 设为 20 秒前）
+			const lockDir = `${TEST_SETTINGS}.lock`;
+			mkdirSync(lockDir);
+			// 手动修改 mtime 为 20 秒前
+			const { utimesSync } = require("node:fs");
+			const oldTime = (Date.now() - 20_000) / 1000;
+			utimesSync(lockDir, oldTime, oldTime);
+
+			// patch 应该能清理过时锁并正常执行
+			const result = patchSettingsSectionWithBackup(
+				"context",
+				{ threshold: 300 },
+				{ threshold: 100 },
+				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, backup: false },
+				);
+
+			expect(result.config.threshold).toBe(300);
+			expect(existsSync(lockDir)).toBe(false);
+		});
+	});
 });

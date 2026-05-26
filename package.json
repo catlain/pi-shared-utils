@@ -15,7 +15,6 @@
     "lint": "biome check lib src index.ts",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {},
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": ">=0.6.0"
   },

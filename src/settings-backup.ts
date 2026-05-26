@@ -16,6 +16,7 @@
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { withFileLock } from "./file-lock";
 import { validateConfigSchema, type SchemaError } from "./project-config";
 
 // ── 类型 ─────────────────────────────────────────────────
@@ -200,9 +201,18 @@ export function patchSettingsSectionWithBackup<T extends Record<string, any>>(
 		rotateBackups(backupDir, maxBackups);
 	}
 
-	// 5. 写入
-	settings[section] = merged;
-	writeFull(settingsPath, settings);
+	// 5. 加锁写入（与 pi SettingsManager 互斥）
+	if (settingsPath) {
+		withFileLock(settingsPath, () => {
+			// 重新读取（可能在等锁期间被其他进程修改）
+			const latest = readFull(settingsPath);
+			latest[section] = merged;
+			writeFull(settingsPath, latest);
+		});
+	} else {
+		settings[section] = merged;
+		writeFull(settingsPath, settings);
+	}
 
 	// 6. 返回合并后的配置
 	const finalConfig = { ...defaults, ...merged } as T;
@@ -224,12 +234,19 @@ export function rollbackSettings(options?: RollbackOptions): void {
 		throw new Error(`无可用备份：${backupDir}`);
 	}
 
-	const latest = backups[0];
-	const content = readFileSync(latest.path, "utf-8");
-	writeFileSync(settingsPath, content);
+	const latestBackup = backups[0];
+	const content = readFileSync(latestBackup.path, "utf-8");
+
+	if (settingsPath) {
+		withFileLock(settingsPath, () => {
+			writeFileSync(settingsPath, content);
+		});
+	} else {
+		writeFileSync(settingsPath, content);
+	}
 
 	// 删除已恢复的备份
-	rmSync(latest.path);
+	rmSync(latestBackup.path);
 }
 
 /**
