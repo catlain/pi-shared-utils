@@ -11,10 +11,9 @@
  *   const tools = getEnabledTools(allTools, cwd);        // 三层合并后过滤
  */
 
-import { readFileSync, existsSync } from "node:fs";
-import { readProjectSettings } from "./project-config";
-import { getSettingsSection } from "./settings";
+import { existsSync, readFileSync } from "node:fs";
 import { SETTINGS_PATH } from "./paths";
+import { readProjectSettings } from "./project-config";
 
 // ── 类型 ─────────────────────────────────────────────────
 
@@ -76,7 +75,7 @@ export function getEnabledTools(allTools: string[], cwd: string): string[] {
 	// 禁用优先
 	if (filter.disabled?.length) {
 		const disabledSet = new Set(filter.disabled);
-		tools = tools.filter(t => !disabledSet.has(t));
+		tools = tools.filter((t) => !disabledSet.has(t));
 	}
 
 	// 额外启用（可能不在 allTools 里，给调用方自行处理）
@@ -119,7 +118,7 @@ export function getDisabledMcpServers(cwd: string): string[] {
 	// 项目级 enabled 白名单覆盖：从 disabled 中移除
 	if (projectEnabled.length > 0) {
 		const enabledSet = new Set(projectEnabled);
-		return [...new Set(merged.filter(s => !enabledSet.has(s)))];
+		return [...new Set(merged.filter((s) => !enabledSet.has(s)))];
 	}
 
 	return [...new Set(merged)];

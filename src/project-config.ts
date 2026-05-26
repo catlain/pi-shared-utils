@@ -12,10 +12,10 @@
  *   const tools = getEnabledTools(allTools, cwd);
  */
 
-import { readFileSync, existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { getSettingsSection } from "./settings";
 import { SETTINGS_PATH } from "./paths";
+import { getSettingsSection } from "./settings";
 
 // ── 类型 ─────────────────────────────────────────────────
 
@@ -62,11 +62,7 @@ export interface ToolFilter {
 // ── 内部工具 ─────────────────────────────────────────────
 
 /** 深度合并两个对象，source 覆盖 target */
-function deepMerge<T extends Record<string, any>>(
-	target: T,
-	source: Record<string, any>,
-	options?: MergeOptions,
-): T {
+function deepMerge<T extends Record<string, any>>(target: T, source: Record<string, any>, options?: MergeOptions): T {
 	const result = { ...target } as Record<string, any>;
 	for (const key of Object.keys(source)) {
 		if (
@@ -153,10 +149,7 @@ export function getEffectiveConfig<T extends Record<string, any>>(
  * @param sensitiveKeys - 需要检测冲突的 key 列表（可选，默认检查所有有差异的 key）
  * @returns 冲突列表
  */
-export function detectConfigConflicts(
-	cwd: string,
-	sensitiveKeys?: string[],
-): ConfigConflict[] {
+export function detectConfigConflicts(cwd: string, sensitiveKeys?: string[]): ConfigConflict[] {
 	const conflicts: ConfigConflict[] = [];
 	const projectSettings = readProjectSettings(cwd);
 	if (Object.keys(projectSettings).length === 0) return conflicts;
@@ -210,21 +203,13 @@ export function detectConfigConflicts(
  * @param cwd - 当前项目目录
  * @returns 格式错误列表
  */
-export function validateConfigSchema(
-	section: string,
-	defaults: Record<string, any>,
-	cwd: string,
-): SchemaError[] {
+export function validateConfigSchema(section: string, defaults: Record<string, any>, cwd: string): SchemaError[] {
 	const errors: SchemaError[] = [];
 	const projectSettings = readProjectSettings(cwd);
 	const projectSection = projectSettings?.[section];
 	if (!projectSection || typeof projectSection !== "object") return errors;
 
-	function checkTypes(
-		defaultObj: Record<string, any>,
-		projectObj: Record<string, any>,
-		prefix: string,
-	) {
+	function checkTypes(defaultObj: Record<string, any>, projectObj: Record<string, any>, prefix: string) {
 		for (const key of Object.keys(projectObj)) {
 			const fullKey = prefix ? `${prefix}.${key}` : key;
 			const defaultVal = defaultObj[key];
@@ -233,12 +218,8 @@ export function validateConfigSchema(
 			// 只校验 defaults 中定义的字段（未知字段跳过）
 			if (defaultVal === undefined) continue;
 
-			const expectedType = Array.isArray(defaultVal) ? "array"
-				: defaultVal === null ? "null"
-				: typeof defaultVal;
-			const actualType = Array.isArray(projectVal) ? "array"
-				: projectVal === null ? "null"
-				: typeof projectVal;
+			const expectedType = Array.isArray(defaultVal) ? "array" : defaultVal === null ? "null" : typeof defaultVal;
+			const actualType = Array.isArray(projectVal) ? "array" : projectVal === null ? "null" : typeof projectVal;
 
 			if (expectedType === "object" && actualType === "object") {
 				// 递归校验嵌套对象

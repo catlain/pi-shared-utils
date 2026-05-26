@@ -1,59 +1,55 @@
 /**
  * @pi-atelier/shared-utils — barrel export
  */
-export {
-	parseFileName,
-	buildFileName,
-	scanMemoryDir,
-	type MemoryEntry,
-} from "./memory-parser";
 
 export {
 	discoverAgents,
-	getAgentDescription,
 	formatAgentsList,
+	getAgentDescription,
 } from "./agents";
-
 export {
-	getSettingsSection,
-	patchSettingsSection,
-	getSettingsValue,
-	setSettingsValue,
-} from "./settings";
+	drainHints,
+	hasHints,
+	peekHints,
+	peekLabels,
+	pushHint,
+} from "./ephemeral";
+export {
+	buildFileName,
+	type MemoryEntry,
+	parseFileName,
+	scanMemoryDir,
+} from "./memory-parser";
 
 export {
 	AGENT_DIR,
-	SETTINGS_PATH,
-	MODELS_CONFIG_PATH,
-	MEMORY_MD_PATH,
-	MEMORY_DIR,
-	MCP_CONFIG_PATH,
-	MCP_CACHE_PATH,
 	AGENTS_DIR,
 	GLOBAL_RULES_PATH,
+	MCP_CACHE_PATH,
+	MCP_CONFIG_PATH,
+	MEMORY_DIR,
+	MEMORY_MD_PATH,
+	MODELS_CONFIG_PATH,
+	SETTINGS_PATH,
 } from "./paths";
-
 export {
-	pushHint,
-	hasHints,
-	peekHints,
-	drainHints,
-	peekLabels,
-} from "./ephemeral";
-
-export {
-	getEffectiveConfig,
-	validateConfigSchema,
-	detectConfigConflicts,
-	clearProjectSettingsCache,
 	type ConfigConflict,
+	clearProjectSettingsCache,
+	detectConfigConflicts,
 	type EffectiveConfigResult,
+	getEffectiveConfig,
 	type MergeOptions,
 	type SchemaError,
+	validateConfigSchema,
 } from "./project-config";
-
 export {
-	getEnabledTools,
 	getDisabledMcpServers,
+	getEnabledTools,
 	type ToolFilter,
 } from "./project-tools";
+export {
+	getSettingsSection,
+	getSettingsValue,
+	patchSettingsSection,
+	setSettingsValue,
+} from "./settings";

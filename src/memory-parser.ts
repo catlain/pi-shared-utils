@@ -57,8 +57,9 @@ export function scanMemoryDir(dir: string, scope: "L1" | "L2"): MemoryEntry[] {
 	const entries: MemoryEntry[] = [];
 	if (!fs.existsSync(dir)) return entries;
 
-	const files = fs.readdirSync(dir)
-		.filter(f => f.endsWith(".md") && f !== "MEMORY.md")
+	const files = fs
+		.readdirSync(dir)
+		.filter((f) => f.endsWith(".md") && f !== "MEMORY.md")
 		.sort();
 
 	for (const file of files) {
@@ -66,7 +67,7 @@ export function scanMemoryDir(dir: string, scope: "L1" | "L2"): MemoryEntry[] {
 		try {
 			const content = fs.readFileSync(filePath, "utf-8");
 			const lines = content.split("\n").length;
-			const titleLine = content.split("\n").find(l => l.startsWith("# "));
+			const titleLine = content.split("\n").find((l) => l.startsWith("# "));
 			const description = titleLine?.replace(/^#\s+/, "") || "";
 			const parsed = parseFileName(file);
 			entries.push({

@@ -1,7 +1,7 @@
 {
   "mcp": {
     "enabled": [
-      "code-graph"
+      "code-graph-pi-shared-utils"
     ]
   }
 }

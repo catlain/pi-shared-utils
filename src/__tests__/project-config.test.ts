@@ -1,17 +1,14 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdirSync, writeFileSync, rmSync, existsSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
+	clearProjectSettingsCache,
+	detectConfigConflicts,
 	getEffectiveConfig,
 	validateConfigSchema,
-	detectConfigConflicts,
-	clearProjectSettingsCache,
 } from "../project-config";
-import {
-	getEnabledTools,
-	getDisabledMcpServers,
-} from "../project-tools";
+import { getDisabledMcpServers, getEnabledTools } from "../project-tools";
 
 const TEST_DIR = join(tmpdir(), "pi-shared-utils-test");
 
@@ -25,6 +22,15 @@ function createProjectSettings(dir: string, content: Record<string, any>) {
 
 function cleanupDir(dir: string) {
 	if (existsSync(dir)) rmSync(dir, { recursive: true });
+}
+
+const SETTINGS_PATH = join(require("node:os").homedir(), ".pi/agent/settings.json");
+
+/** 临时替换全局 settings.json 内容（用于测试三层合并） */
+function mockGlobalSettings(content: Record<string, any>) {
+	const original = readFileSync(SETTINGS_PATH, "utf-8");
+	writeFileSync(SETTINGS_PATH, JSON.stringify(content, null, 2));
+	return () => writeFileSync(SETTINGS_PATH, original);
 }
 
 // ── 测试 ─────────────────────────────────────────────────
@@ -155,7 +161,9 @@ describe("project-config", () => {
 
 		it("concatMerge 策略：数组字段做追加而非替换", () => {
 			createProjectSettings(TEST_DIR, {
-				shepherd: { rules: [{ comment: "项目规则", hook: "tool_call", tool: "bash", action: "notify", reason: "test" }] },
+				shepherd: {
+					rules: [{ comment: "项目规则", hook: "tool_call", tool: "bash", action: "notify", reason: "test" }],
+				},
 			});
 
 			const defaults = {
@@ -223,17 +231,27 @@ describe("project-config", () => {
 
 	describe("getDisabledMcpServers", () => {
 		it("无配置时返回空", () => {
-			const disabled = getDisabledMcpServers(TEST_DIR);
-			expect(disabled).toEqual([]);
+			const restore = mockGlobalSettings({});
+			try {
+				const disabled = getDisabledMcpServers(TEST_DIR);
+				expect(disabled).toEqual([]);
+			} finally {
+				restore();
+			}
 		});
 
 		it("返回禁用的 MCP 服务器", () => {
-			createProjectSettings(TEST_DIR, {
-				mcp: { disabled: ["code-graph", "glm-web-search"] },
-			});
+			const restore = mockGlobalSettings({});
+			try {
+				createProjectSettings(TEST_DIR, {
+					mcp: { disabled: ["code-graph", "glm-web-search"] },
+				});
 
-			const disabled = getDisabledMcpServers(TEST_DIR);
-			expect(disabled).toEqual(["code-graph", "glm-web-search"]);
+				const disabled = getDisabledMcpServers(TEST_DIR);
+				expect(disabled).toEqual(["code-graph", "glm-web-search"]);
+			} finally {
+				restore();
+			}
 		});
 	});
 });

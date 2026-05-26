@@ -7,9 +7,9 @@
  *   const cfg = getSettingsSection("context", defaults);
  *   patchSettingsSection("context", { distillThreshold: 3000 });
  */
-import { readFileSync, writeFileSync, existsSync } from "fs";
-import { join } from "path";
-import { homedir } from "os";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 
 const SETTINGS_PATH = join(homedir(), ".pi/agent/settings.json");
 
@@ -23,7 +23,7 @@ function readFull(): Record<string, any> {
 }
 
 function writeFull(settings: Record<string, any>): void {
-	writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, "\t") + "\n");
+	writeFileSync(SETTINGS_PATH, `${JSON.stringify(settings, null, "\t")}\n`);
 }
 
 /**
@@ -52,7 +52,11 @@ export function getSettingsSection<T extends Record<string, any>>(section: strin
  * @param patch - 要修改的字段（部分对象）
  * @returns 更新后的完整配置
  */
-export function patchSettingsSection<T extends Record<string, any>>(section: string, patch: Partial<T>, defaults: T): T {
+export function patchSettingsSection<T extends Record<string, any>>(
+	section: string,
+	patch: Partial<T>,
+	defaults: T,
+): T {
 	const settings = readFull();
 	const current = settings[section] ?? {};
 	for (const [key, value] of Object.entries(patch)) {

@@ -1,14 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import {
-	getEnabledTools,
-	getDisabledMcpServers,
-	getEffectiveToolFilter,
-} from "../project-tools";
-import { clearProjectSettingsCache } from "../project-config";
+import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { SETTINGS_PATH } from "../paths";
+import { clearProjectSettingsCache } from "../project-config";
+import { getDisabledMcpServers, getEffectiveToolFilter, getEnabledTools } from "../project-tools";
 
 const TEST_DIR = join(tmpdir(), "pi-shared-utils-tools-test");
 
@@ -54,8 +50,13 @@ describe("getDisabledMcpServers — 三层合并", () => {
 	});
 
 	it("无全局无项目配置时，返回空数组", () => {
-		const result = getDisabledMcpServers(TEST_DIR);
-		expect(result).toEqual([]);
+		const restore = mockGlobalSettings({});
+		try {
+			const result = getDisabledMcpServers(TEST_DIR);
+			expect(result).toEqual([]);
+		} finally {
+			restore();
+		}
 	});
 
 	it("全局 + 项目 concat 合并", () => {
@@ -81,9 +82,14 @@ describe("getDisabledMcpServers — 三层合并", () => {
 	});
 
 	it("只有项目级配置时", () => {
-		createProjectSettings(TEST_DIR, { mcp: { disabled: ["godot", "glm"] } });
-		const result = getDisabledMcpServers(TEST_DIR);
-		expect(result).toEqual(["godot", "glm"]);
+		const restore = mockGlobalSettings({});
+		try {
+			createProjectSettings(TEST_DIR, { mcp: { disabled: ["godot", "glm"] } });
+			const result = getDisabledMcpServers(TEST_DIR);
+			expect(result).toEqual(["godot", "glm"]);
+		} finally {
+			restore();
+		}
 	});
 
 	it("全局禁用 + 项目 enabled 白名单覆盖", () => {
@@ -104,7 +110,7 @@ describe("getDisabledMcpServers — 三层合并", () => {
 		try {
 			createProjectSettings(TEST_DIR, {
 				mcp: {
-					enabled: ["godot"],        // 启用 godot（从 disabled 中移除）
+					enabled: ["godot"], // 启用 godot（从 disabled 中移除）
 					disabled: ["glm-web-search"], // 额外禁用
 				},
 			});

@@ -5,15 +5,16 @@
  * - 值相同时不报冲突
  * - 类型不匹配的各种情况
  */
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdirSync, writeFileSync, rmSync, existsSync } from "node:fs";
-import { join } from "node:path";
+
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
+	clearProjectSettingsCache,
+	detectConfigConflicts,
 	getEffectiveConfig,
 	validateConfigSchema,
-	detectConfigConflicts,
-	clearProjectSettingsCache,
 } from "../project-config";
 
 const TEST_DIR = join(tmpdir(), "pi-shared-utils-edge-test");
@@ -28,13 +29,25 @@ function cleanupDir(dir: string) {
 	if (existsSync(dir)) rmSync(dir, { recursive: true });
 }
 
+const SETTINGS_PATH = join(require("node:os").homedir(), ".pi/agent/settings.json");
+
+function mockGlobalSettings(content: Record<string, any>) {
+	const original = readFileSync(SETTINGS_PATH, "utf-8");
+	writeFileSync(SETTINGS_PATH, JSON.stringify(content, null, 2));
+	return () => writeFileSync(SETTINGS_PATH, original);
+}
+
+let restoreGlobal: (() => void) | undefined;
+
 describe("边界情况与隔离性", () => {
 	beforeEach(() => {
 		cleanupDir(TEST_DIR);
 		clearProjectSettingsCache();
 		mkdirSync(TEST_DIR, { recursive: true });
+		restoreGlobal = mockGlobalSettings({});
 	});
 	afterEach(() => {
+		restoreGlobal?.();
 		cleanupDir(TEST_DIR);
 	});
 
@@ -97,7 +110,7 @@ describe("边界情况与隔离性", () => {
 		});
 
 		const conflicts = detectConfigConflicts(TEST_DIR);
-		const contextConflicts = conflicts.filter(c => c.section === "context" && c.key === "distillThreshold");
+		const contextConflicts = conflicts.filter((c) => c.section === "context" && c.key === "distillThreshold");
 		expect(contextConflicts).toHaveLength(0);
 	});
 
