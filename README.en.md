@@ -1,4 +1,4 @@
-[English](README.en.md) | 程序中文文档
+[中文文档](README.md) | English
 
 # pi-shared-utils
 
@@ -16,12 +16,12 @@ If you're building a pi extension, you'll inevitably need the same building bloc
 pi-shared-utils provides 6 independent modules:
 
 ┌─────────────────────────────────────────────────┐
-│  memory-parser  ── 解析 topic--kw1,kw2.md 文件名  │
-│  paths         ── pi agent 标准路径常量            │
-│  settings      ── settings.json 读写扩展配置段    │
-│  tool-output   ── 工具输出截断（防上下文溢出）    │
-│  agents        ── 子代理定义文件发现              │
-│  ephemeral     ── 会话临时 hint/label 栈          │
+│  memory-parser  ── parse topic--kw1,kw2.md file names
+│  paths         ── standard pi agent path constants
+│  settings      ── read/write extension config sections in settings.json
+│  tool-output   ── truncate tool output (prevent context overflow)
+│  agents        ── discover sub-agent definition files
+│  ephemeral     ── session-scoped hint/label stack
 └─────────────────────────────────────────────────┘
 ```
 
@@ -33,107 +33,107 @@ Each module is independently importable — use only what you need.
 pi install git:github.com/catlain/pi-atelier
 ```
 
-> 这是 pi-atelier monorepo 内的 workspace 包，通常不需要单独安装。其他独立扩展通过 `bundledDependencies` 自动包含它。
+> This is a workspace package inside the pi-atelier monorepo and typically doesn't need to be installed standalone. Other independent extensions include it automatically via `bundledDependencies`.
 
-## 导出模块
+## Exported Modules
 
-### 记忆文件解析 (`memory-parser`)
+### Memory File Parsing (`memory-parser`)
 
-解析 `topic--kw1,kw2,kw3.md` 格式的记忆文件名，扫描目录生成索引。
+Parses `topic--kw1,kw2,kw3.md`-format memory file names and scans directories to generate an index.
 
 ```ts
 import { parseFileName, buildFileName, scanMemoryDir } from "@pi-atelier/shared-utils";
 
-// 解析文件名 → { topic, keywords }
+// Parse file name → { topic, keywords }
 const { topic, keywords } = parseFileName("coding_standards--编码,git,lint.md");
 // topic = "coding_standards", keywords = ["编码", "git", "lint"]
 
-// 反向构建文件名
+// Build file name from parts
 const name = buildFileName("coding_standards", ["编码", "git", "lint"]);
 // "coding_standards--编码,git,lint.md"
 
-// 扫描目录，返回 MemoryEntry[]
+// Scan directory, returns MemoryEntry[]
 const entries = await scanMemoryDir("/path/to/memory");
 ```
 
-### 路径常量 (`paths`)
+### Path Constants (`paths`)
 
-pi agent 标准路径，避免硬编码。
+Standard pi agent paths, so you never hardcode them.
 
-| 常量 | 路径 | 说明 |
+| Constant | Path | Description |
 |------|------|------|
-| `AGENT_DIR` | `~/.pi/agent/` | agent 根目录 |
-| `SETTINGS_PATH` | `~/.pi/agent/settings.json` | 全局设置 |
-| `MODELS_CONFIG_PATH` | `~/.pi/agent/models.json` | 模型配置 |
-| `MCP_CONFIG_PATH` | `~/.pi/agent/mcp.json` | MCP 服务器配置 |
-| `MCP_CACHE_PATH` | `~/.pi/agent/mcp-cache/` | MCP 工具缓存 |
-| `AGENTS_DIR` | `~/.pi/agent/agents/` | 子代理定义 |
-| `GLOBAL_RULES_PATH` | `~/.pi/agent/rules.md` | 全局规则 |
-| `MEMORY_DIR` | `~/.pi/agent/memory/` | 全局记忆 |
-| `MEMORY_MD_PATH` | `MEMORY.md` | 记忆索引文件名 |
+| `AGENT_DIR` | `~/.pi/agent/` | Agent root directory |
+| `SETTINGS_PATH` | `~/.pi/agent/settings.json` | Global settings |
+| `MODELS_CONFIG_PATH` | `~/.pi/agent/models.json` | Model configuration |
+| `MCP_CONFIG_PATH` | `~/.pi/agent/mcp.json` | MCP server configuration |
+| `MCP_CACHE_PATH` | `~/.pi/agent/mcp-cache/` | MCP tool cache |
+| `AGENTS_DIR` | `~/.pi/agent/agents/` | Sub-agent definitions |
+| `GLOBAL_RULES_PATH` | `~/.pi/agent/rules.md` | Global rules |
+| `MEMORY_DIR` | `~/.pi/agent/memory/` | Global memory |
+| `MEMORY_MD_PATH` | `MEMORY.md` | Memory index file name |
 
-### 设置管理 (`settings`)
+### Settings Management (`settings`)
 
-读写 `settings.json` 中扩展的自定义配置段。
+Read and write extension-specific config sections in `settings.json`.
 
 ```ts
 import { getSettingsSection, patchSettingsSection, getSettingsValue, setSettingsValue } from "@pi-atelier/shared-utils";
 
-// 读取扩展配置段
+// Read extension config section
 const config = await getSettingsSection("my-extension");
 
-// 增量更新配置
+// Update config incrementally
 await patchSettingsSection("my-extension", { enabled: true });
 
-// 读取/写入单个值
+// Read/write a single value
 const val = await getSettingsValue("my-extension", "key", "default");
 await setSettingsValue("my-extension", "key", "new-value");
 ```
 
-### 工具输出截断 (`tool-output`)
+### Tool Output Truncation (`tool-output`)
 
-防止工具返回超大结果撑爆 LLM 上下文。
+Prevent large tool results from overflowing the LLM context.
 
 ```ts
 import { truncateToolOutput, truncatedResult, TOOL_OUTPUT_MAX_LINES } from "@pi-atelier/shared-utils";
 
-// 截断过长的输出
+// Truncate overly long output
 const result = truncateToolOutput(longText, { maxLines: 200 });
 // { text: "...", truncated: true, originalLines: 1500, keptLines: 200 }
 
-// 快捷方式：返回 pi tool result 格式
-return truncatedResult(text);  // 自动截断 + 返回 { content: [{ type: "text", text }] }
+// Shortcut: returns pi tool result format
+return truncatedResult(text);  // auto-truncates + returns { content: [{ type: "text", text }] }
 ```
 
-### 子代理发现 (`agents`)
+### Sub-Agent Discovery (`agents`)
 
-扫描 `~/.pi/agent/agents/` 目录下的子代理定义文件。
+Scan the `~/.pi/agent/agents/` directory for sub-agent definition files.
 
 ```ts
 import { discoverAgents, getAgentDescription, formatAgentsList } from "@pi-atelier/shared-utils";
 
-// 发现所有可用子代理
+// Discover all available sub-agents
 const agents = await discoverAgents();
 // [{ name: "pv-executor", description: "...", filePath: "..." }, ...]
 
-// 获取单个描述
+// Get description for a single agent
 const desc = await getAgentDescription("pv-executor");
 
-// 格式化为可读列表
+// Format as a readable list
 const list = formatAgentsList(agents);
 ```
 
-### 会话临时数据 (`ephemeral`)
+### Session-Scoped Data (`ephemeral`)
 
-当前会话的临时 hint/label 栈，会话结束即消失。用于跨工具调用的轻量状态传递。
+A hint/label stack for the current session that vanishes when the session ends. Useful for lightweight state passing across tool calls.
 
 ```ts
 import { pushHint, hasHints, peekHints, drainHints, peekLabels } from "@pi-atelier/shared-utils";
 
 pushHint({ key: "recent-files", values: ["file1.ts", "file2.ts"] });
 const has = hasHints("recent-files");
-const hints = peekHints("recent-files");   // 查看不移除
-const all = drainHints();                   // 取出并清空
+const hints = peekHints("recent-files");   // peek without removing
+const all = drainHints();                   // retrieve and clear
 ```
 
 ## Best Practices
