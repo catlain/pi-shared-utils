@@ -52,10 +52,13 @@ export {
 
 export {
 	getEffectiveConfig,
+	validateConfigSchema,
 	detectConfigConflicts,
 	getEnabledTools,
 	getDisabledMcpServers,
 	type ConfigConflict,
 	type EffectiveConfigResult,
+	type MergeOptions,
+	type SchemaError,
 	type ToolFilter,
 } from "./project-config";

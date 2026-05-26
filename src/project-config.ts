@@ -34,6 +34,24 @@ export interface EffectiveConfigResult<T extends Record<string, any>> {
 	sources: Record<string, "default" | "global" | "project">;
 }
 
+export interface MergeOptions {
+	/** 数组合并策略：replace（项目级替换全局，默认）、concat（项目级追加到全局） */
+	arrayMerge?: "replace" | "concat";
+}
+
+export interface SchemaError {
+	/** 配置段名 */
+	section: string;
+	/** 字段名 */
+	key: string;
+	/** 期望类型 */
+	expectedType: string;
+	/** 实际类型 */
+	actualType: string;
+	/** 人类可读描述 */
+	description: string;
+}
+
 export interface ToolFilter {
 	/** 额外启用的工具 ID 列表 */
 	enabled?: string[];
@@ -44,7 +62,11 @@ export interface ToolFilter {
 // ── 内部工具 ─────────────────────────────────────────────
 
 /** 深度合并两个对象，source 覆盖 target */
-function deepMerge<T extends Record<string, any>>(target: T, source: Record<string, any>): T {
+function deepMerge<T extends Record<string, any>>(
+	target: T,
+	source: Record<string, any>,
+	options?: MergeOptions,
+): T {
 	const result = { ...target } as Record<string, any>;
 	for (const key of Object.keys(source)) {
 		if (
@@ -55,7 +77,10 @@ function deepMerge<T extends Record<string, any>>(target: T, source: Record<stri
 			typeof result[key] === "object" &&
 			!Array.isArray(result[key])
 		) {
-			result[key] = deepMerge(result[key], source[key]);
+			result[key] = deepMerge(result[key], source[key], options);
+		} else if (Array.isArray(source[key]) && options?.arrayMerge === "concat" && Array.isArray(result[key])) {
+			// concat 策略：项目级数组追加到全局数组末尾
+			result[key] = [...result[key], ...source[key]];
 		} else {
 			result[key] = source[key];
 		}
@@ -82,12 +107,14 @@ function readProjectSettings(cwd: string): Record<string, any> {
  * @param section - settings.json 中的顶层 key，如 "context"、"shepherd"
  * @param defaults - 该段的默认值（完整对象）
  * @param cwd - 当前项目目录（用于查找 .pi/settings.json）
+ * @param options - 合并选项（如 arrayMerge 策略）
  * @returns 合并后的配置 + 各字段来源
  */
 export function getEffectiveConfig<T extends Record<string, any>>(
 	section: string,
 	defaults: T,
 	cwd: string,
+	options?: MergeOptions,
 ): EffectiveConfigResult<T> {
 	// 1. 全局配置
 	const globalConfig = getSettingsSection(section, defaults);
@@ -97,7 +124,7 @@ export function getEffectiveConfig<T extends Record<string, any>>(
 	const projectSection = projectSettings?.[section] ?? {};
 
 	// 3. Deep merge: defaults → global → project
-	const merged = deepMerge(globalConfig, projectSection);
+	const merged = deepMerge(globalConfig, projectSection, options);
 
 	// 4. 追踪来源
 	const sources: Record<string, "default" | "global" | "project"> = {};
@@ -167,6 +194,66 @@ export function detectConfigConflicts(
 	}
 
 	return conflicts;
+}
+
+/**
+ * 校验项目级配置与默认值的类型一致性
+ *
+ * 对比项目 .pi/settings.json 中指定 section 的字段类型与 defaults 定义的类型，
+ * 类型不一致时返回错误列表。
+ *
+ * @param section - settings.json 中的顶层 key
+ * @param defaults - 该段的默认值（定义了期望的类型结构）
+ * @param cwd - 当前项目目录
+ * @returns 格式错误列表
+ */
+export function validateConfigSchema(
+	section: string,
+	defaults: Record<string, any>,
+	cwd: string,
+): SchemaError[] {
+	const errors: SchemaError[] = [];
+	const projectSettings = readProjectSettings(cwd);
+	const projectSection = projectSettings?.[section];
+	if (!projectSection || typeof projectSection !== "object") return errors;
+
+	function checkTypes(
+		defaultObj: Record<string, any>,
+		projectObj: Record<string, any>,
+		prefix: string,
+	) {
+		for (const key of Object.keys(projectObj)) {
+			const fullKey = prefix ? `${prefix}.${key}` : key;
+			const defaultVal = defaultObj[key];
+			const projectVal = projectObj[key];
+
+			// 只校验 defaults 中定义的字段（未知字段跳过）
+			if (defaultVal === undefined) continue;
+
+			const expectedType = Array.isArray(defaultVal) ? "array"
+				: defaultVal === null ? "null"
+				: typeof defaultVal;
+			const actualType = Array.isArray(projectVal) ? "array"
+				: projectVal === null ? "null"
+				: typeof projectVal;
+
+			if (expectedType === "object" && actualType === "object") {
+				// 递归校验嵌套对象
+				checkTypes(defaultVal, projectVal, fullKey);
+			} else if (expectedType !== actualType) {
+				errors.push({
+					section,
+					key: fullKey,
+					expectedType,
+					actualType,
+					description: `配置 "${section}.${fullKey}" 类型错误：期望 ${expectedType}，实际 ${actualType}`,
+				});
+			}
+		}
+	}
+
+	checkTypes(defaults, projectSection, "");
+	return errors;
 }
 
 /**

@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
 	getEffectiveConfig,
+	validateConfigSchema,
 	detectConfigConflicts,
 	getEnabledTools,
 	getDisabledMcpServers,
@@ -134,6 +135,85 @@ describe("project-config", () => {
 
 			const tools = getEnabledTools(["vision_analyze", "payload_analyze"], TEST_DIR);
 			expect(tools).toEqual(["vision_analyze", "custom_tool"]);
+		});
+	});
+
+	describe("数组合并策略", () => {
+		it("默认：数组字段被项目级替换", () => {
+			createProjectSettings(TEST_DIR, {
+				test: { items: [4, 5, 6] },
+			});
+
+			const defaults = { items: [1, 2, 3] };
+			const result = getEffectiveConfig("test", defaults, TEST_DIR);
+			expect(result.config.items).toEqual([4, 5, 6]);
+		});
+
+		it("concatMerge 策略：数组字段做追加而非替换", () => {
+			createProjectSettings(TEST_DIR, {
+				shepherd: { rules: [{ comment: "项目规则", hook: "tool_call", tool: "bash", action: "notify", reason: "test" }] },
+			});
+
+			const defaults = {
+				rules: [{ comment: "全局规则", hook: "tool_call", tool: "bash", action: "block", reason: "test" }],
+			};
+			const result = getEffectiveConfig("shepherd", defaults, TEST_DIR, {
+				arrayMerge: "concat",
+			});
+			// 全局 + 项目 追加
+			expect(result.config.rules).toHaveLength(2);
+			expect(result.config.rules[0].comment).toBe("全局规则");
+			expect(result.config.rules[1].comment).toBe("项目规则");
+		});
+
+		it("concatMerge 策略：无项目级配置时不改变数组", () => {
+			const defaults = {
+				rules: [{ comment: "唯一规则" }],
+			};
+			const result = getEffectiveConfig("shepherd", defaults, TEST_DIR, {
+				arrayMerge: "concat",
+			});
+			expect(result.config.rules).toHaveLength(1);
+			expect(result.config.rules[0].comment).toBe("唯一规则");
+		});
+	});
+
+	describe("validateConfigSchema", () => {
+		it("类型一致时无错误", () => {
+			createProjectSettings(TEST_DIR, {
+				context: { distillThreshold: 8000 },
+			});
+
+			const errors = validateConfigSchema("context", { distillThreshold: 5000 }, TEST_DIR);
+			expect(errors).toEqual([]);
+		});
+
+		it("类型不一致时报错", () => {
+			createProjectSettings(TEST_DIR, {
+				context: { distillThreshold: "8000" },
+			});
+
+			const errors = validateConfigSchema("context", { distillThreshold: 5000 }, TEST_DIR);
+			expect(errors.length).toBeGreaterThan(0);
+			expect(errors[0].key).toBe("distillThreshold");
+			expect(errors[0].expectedType).toBe("number");
+			expect(errors[0].actualType).toBe("string");
+		});
+
+		it("无项目配置时无错误", () => {
+			const errors = validateConfigSchema("context", { distillThreshold: 5000 }, TEST_DIR);
+			expect(errors).toEqual([]);
+		});
+
+		it("嵌套对象类型不一致", () => {
+			createProjectSettings(TEST_DIR, {
+				retry: { provider: "not-an-object" },
+			});
+
+			const defaults = { provider: { timeoutMs: 60000 } };
+			const errors = validateConfigSchema("retry", defaults, TEST_DIR);
+			expect(errors.length).toBeGreaterThan(0);
+			expect(errors[0].key).toBe("provider");
 		});
 	});
 
