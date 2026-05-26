@@ -85,6 +85,36 @@ describe("getDisabledMcpServers — 三层合并", () => {
 		const result = getDisabledMcpServers(TEST_DIR);
 		expect(result).toEqual(["godot", "glm"]);
 	});
+
+	it("全局禁用 + 项目 enabled 白名单覆盖", () => {
+		const restore = mockGlobalSettings({ mcp: { disabled: ["godot", "code-graph", "glm-web-search"] } });
+		try {
+			// 项目启用 godot，其他保持禁用
+			createProjectSettings(TEST_DIR, { mcp: { enabled: ["godot"] } });
+			const result = getDisabledMcpServers(TEST_DIR);
+			expect(result).toEqual(["code-graph", "glm-web-search"]);
+			expect(result).not.toContain("godot");
+		} finally {
+			restore();
+		}
+	});
+
+	it("全局禁用 + 项目 enabled + 项目 disabled 同时生效", () => {
+		const restore = mockGlobalSettings({ mcp: { disabled: ["godot", "code-graph"] } });
+		try {
+			createProjectSettings(TEST_DIR, {
+				mcp: {
+					enabled: ["godot"],        // 启用 godot（从 disabled 中移除）
+					disabled: ["glm-web-search"], // 额外禁用
+				},
+			});
+			const result = getDisabledMcpServers(TEST_DIR);
+			expect(result).toEqual(["code-graph", "glm-web-search"]);
+			expect(result).not.toContain("godot");
+		} finally {
+			restore();
+		}
+	});
 });
 
 describe("getEffectiveToolFilter — 三层合并", () => {

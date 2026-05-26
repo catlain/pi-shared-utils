@@ -91,9 +91,15 @@ export function getEnabledTools(allTools: string[], cwd: string): string[] {
 }
 
 /**
- * 获取禁用的 MCP 服务器列表（三层合并：全局 + 项目 concat）
+ * 获取禁用的 MCP 服务器列表（三层合并：全局 + 项目 concat，enabled 白名单覆盖）
  *
- * 场景：全局禁用不稳定的 server，项目级额外禁用不需要的 server。
+ * 配置优先级：
+ *   1. 全局 settings.json 的 mcp.disabled — 全局禁用
+ *   2. 项目 .pi/settings.json 的 mcp.disabled — 项目级追加禁用
+ *   3. 项目 .pi/settings.json 的 mcp.enabled — 白名单，从 disabled 中移除
+ *
+ * 场景：全局禁用 godot/code-graph 等项目专用工具，
+ *       需要的项目在 .pi/settings.json 的 mcp.enabled 里显式启用。
  *
  * @param cwd - 当前项目目录
  * @returns 去重后的禁用 MCP 服务器名称列表
@@ -103,9 +109,18 @@ export function getDisabledMcpServers(cwd: string): string[] {
 	const globalDisabled: string[] = globalMcp.disabled ?? [];
 
 	const projectSettings = readProjectSettings(cwd);
-	const projectDisabled: string[] = projectSettings?.mcp?.disabled ?? [];
+	const projectMcp = projectSettings?.mcp ?? {};
+	const projectDisabled: string[] = projectMcp.disabled ?? [];
+	const projectEnabled: string[] = projectMcp.enabled ?? [];
 
-	// concat + 去重
+	// concat 全局 + 项目 disabled
 	const merged = [...globalDisabled, ...projectDisabled];
+
+	// 项目级 enabled 白名单覆盖：从 disabled 中移除
+	if (projectEnabled.length > 0) {
+		const enabledSet = new Set(projectEnabled);
+		return [...new Set(merged.filter(s => !enabledSet.has(s)))];
+	}
+
 	return [...new Set(merged)];
 }
