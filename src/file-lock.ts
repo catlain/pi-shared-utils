@@ -19,8 +19,8 @@ export function acquireLock(filePath: string): void {
 		try {
 			mkdirSync(lockDir);
 			return; // 获锁成功
-		} catch (err: any) {
-			if (err?.code !== "EEXIST") throw err;
+		} catch (err: unknown) {
+			if (!(err instanceof Error) || (err as NodeJS.ErrnoException).code !== "EEXIST") throw err;
 			// 锁被占 — 检查是否过时
 			try {
 				const stat = statSync(lockDir);

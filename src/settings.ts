@@ -76,10 +76,10 @@ export function patchSettingsSection<T extends Record<string, any>>(
 export function getSettingsValue<T>(path: string, fallback: T): T {
 	const settings = readFull();
 	const keys = path.split(".");
-	let current: any = settings;
+	let current: unknown = settings;
 	for (const key of keys) {
 		if (current == null || typeof current !== "object") return fallback;
-		current = current[key];
+		current = (current as Record<string, unknown>)[key];
 	}
 	return current !== undefined ? (current as T) : fallback;
 }
@@ -93,11 +93,11 @@ export function getSettingsValue<T>(path: string, fallback: T): T {
 export function setSettingsValue<T>(path: string, value: T): void {
 	const settings = readFull();
 	const keys = path.split(".");
-	let current: any = settings;
+	let current: Record<string, unknown> = settings;
 	for (let i = 0; i < keys.length - 1; i++) {
 		const key = keys[i];
 		if (current[key] == null || typeof current[key] !== "object") current[key] = {};
-		current = current[key];
+		current = current[key] as Record<string, unknown>;
 	}
 	current[keys[keys.length - 1]] = value;
 	writeFull(settings);
