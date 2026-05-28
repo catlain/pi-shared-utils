@@ -64,3 +64,8 @@ export {
 	type PatchBackupResult,
 	type RollbackOptions,
 } from "./settings-backup";
+export {
+	matchToolName,
+	matchFile,
+	extractStringValues,
+} from "./filter-match";
