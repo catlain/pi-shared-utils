@@ -4,6 +4,8 @@
 
 # pi-shared-utils
 
+[源码仓库](https://github.com/catlain/pi-shared-utils) | [npm](https://www.npmjs.com/package/@pi-atelier/shared-utils)
+
 Shared utility library for the [pi](https://github.com/earendil-works/pi-coding-agent) extension ecosystem — memory file parsing, path constants, settings management, tool output truncation, and more. Used by 7+ pi extensions.
 
 ## Why You Need It
