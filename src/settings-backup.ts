@@ -14,10 +14,14 @@
  *   rollbackSettings({ settingsPath, backupDir });
  */
 
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync } from "node:fs";
 import { withFileLock } from "./file-lock";
 import { validateConfigSchema, type SchemaError } from "./project-config";
+import { isArrayPatch, applyArrayPatch } from "./settings-array";
+import { createBackup, getDefaultBackupDir, readFull, writeFull } from "./settings-backup-utils";
+import { rotateBackups } from "./settings-backup-rollback";
+export { rollbackSettings, listBackups } from "./settings-backup-rollback";
+export type { BackupEntry, RollbackOptions } from "./settings-backup-rollback";
 
 // ── 类型 ─────────────────────────────────────────────────
 
@@ -43,90 +47,7 @@ export interface PatchBackupResult<T extends Record<string, any>> {
 	backupPath?: string;
 }
 
-export interface RollbackOptions {
-	/** settings.json 路径 */
-	settingsPath?: string;
-	/** 备份目录路径 */
-	backupDir?: string;
-}
-
-export interface BackupEntry {
-	/** 备份文件名 */
-	filename: string;
-	/** 备份文件完整路径 */
-	path: string;
-	/** 备份时间 */
-	timestamp: Date;
-	/** 文件大小（字节） */
-	size: number;
-}
-
-// ── 内部工具 ─────────────────────────────────────────────
-
-const DEFAULT_BACKUP_DIR_SUFFIX = "settings-backup";
-
-/** 格式化时间戳为文件名安全字符串 */
-function formatTimestamp(date: Date): string {
-	return date.toISOString().replace(/[.:]/g, "-");
-}
-
-/** 从备份文件名解析时间戳 */
-function parseTimestamp(filename: string): Date | null {
-	const match = filename.match(/^settings\.(.+)\.json$/);
-	if (!match) return null;
-	// 反转文件名安全字符
-	const isoStr = match[1].replace(/-/g, (m, offset) => {
-		// 位置 4,7 是日期分隔符保持不变，10 是 T 保持不变，13,16 是时间分隔符
-		const chars = match[1];
-		if (offset === 4 || offset === 7) return "-";
-		if (offset === 10) return "T";
-		if (offset === 13 || offset === 16) return ":";
-		if (offset === 19) return ".";
-		return "-";
-	});
-	const d = new Date(isoStr);
-	return Number.isNaN(d.getTime()) ? null : d;
-}
-
-/** 获取默认备份目录 */
-function getDefaultBackupDir(settingsPath: string): string {
-	const dir = settingsPath ? join(settingsPath, "..", DEFAULT_BACKUP_DIR_SUFFIX) : "";
-	return dir;
-}
-
-/** 创建备份 */
-function createBackup(settingsPath: string, backupDir: string): string {
-	mkdirSync(backupDir, { recursive: true });
-	const content = readFileSync(settingsPath, "utf-8");
-	const backupPath = join(backupDir, `settings.${formatTimestamp(new Date())}.json`);
-	writeFileSync(backupPath, content);
-	return backupPath;
-}
-
-/** 清理超出 maxBackups 的旧备份 */
-function rotateBackups(backupDir: string, maxBackups: number): void {
-	if (!existsSync(backupDir)) return;
-	const backups = listBackups({ backupDir });
-	while (backups.length > maxBackups) {
-		const oldest = backups.pop();
-		if (oldest) rmSync(oldest.path);
-	}
-}
-
-/** 读取完整 settings.json */
-function readFull(settingsPath: string): Record<string, any> {
-	try {
-		if (!existsSync(settingsPath)) return {};
-		return JSON.parse(readFileSync(settingsPath, "utf-8"));
-	} catch {
-		return {};
-	}
-}
-
-/** 写入完整 settings.json */
-function writeFull(settingsPath: string, settings: Record<string, any>): void {
-	writeFileSync(settingsPath, `${JSON.stringify(settings, null, "\t")}\n`);
-}
+// rotateBackups / rollbackSettings / listBackups 已拆分到 settings-backup-rollback.ts
 
 // ── API ─────────────────────────────────────────────────
 
@@ -155,6 +76,35 @@ export function patchSettingsSectionWithBackup<T extends Record<string, any>>(
 
 	// 1. 读取当前配置
 	const settings = readFull(settingsPath);
+
+	// ── 数组 patch 分支 ──
+	if (isArrayPatch(patch)) {
+		const currentArr: any[] = Array.isArray(settings[section]) ? settings[section] : (Array.isArray(defaults) ? defaults : []);
+		const mergedArr = applyArrayPatch(currentArr, patch);
+
+		// 备份
+		let backupPath: string | undefined;
+		if (shouldBackup && backupDir && existsSync(settingsPath)) {
+			backupPath = createBackup(settingsPath, backupDir);
+			rotateBackups(backupDir, maxBackups);
+		}
+
+		// 加锁写入
+		if (settingsPath) {
+			withFileLock(settingsPath, () => {
+				const latest = readFull(settingsPath);
+				latest[section] = mergedArr;
+				writeFull(settingsPath, latest);
+			});
+		} else {
+			settings[section] = mergedArr;
+			writeFull(settingsPath, settings);
+		}
+
+		return { config: mergedArr as any as T, errors: [], backupPath };
+	}
+
+	// ── 对象 merge 分支（原有逻辑） ──
 	const current = settings[section] ?? {};
 
 	// 2. 计算合并后的配置（用于校验）
@@ -219,72 +169,4 @@ export function patchSettingsSectionWithBackup<T extends Record<string, any>>(
 	return { config: finalConfig, errors, backupPath };
 }
 
-/**
- * 回滚到最近一次备份
- *
- * @param options - 路径选项
- * @throws 无备份时抛错
- */
-export function rollbackSettings(options?: RollbackOptions): void {
-	const settingsPath = options?.settingsPath ?? "";
-	const backupDir = options?.backupDir ?? getDefaultBackupDir(settingsPath);
-
-	const backups = listBackups({ backupDir });
-	if (backups.length === 0) {
-		throw new Error(`无可用备份：${backupDir}`);
-	}
-
-	const latestBackup = backups[0];
-	const content = readFileSync(latestBackup.path, "utf-8");
-
-	if (settingsPath) {
-		withFileLock(settingsPath, () => {
-			writeFileSync(settingsPath, content);
-		});
-	} else {
-		writeFileSync(settingsPath, content);
-	}
-
-	// 删除已恢复的备份
-	rmSync(latestBackup.path);
-}
-
-/**
- * 列出所有备份（按时间倒序，最新的在前）
- */
-export function listBackups(options?: RollbackOptions): BackupEntry[] {
-	const backupDir = options?.backupDir ?? "";
-
-	if (!existsSync(backupDir)) return [];
-
-	try {
-		const files = readdirSync(backupDir)
-			.filter((f) => f.startsWith("settings.") && f.endsWith(".json"))
-			.map((f) => {
-				const fullPath = join(backupDir, f);
-				const stat = { size: 0 };
-				try {
-					const { statSync } = require("node:fs");
-					const s = statSync(fullPath);
-					return {
-						filename: f,
-						path: fullPath,
-						timestamp: parseTimestamp(f) ?? new Date(0),
-						size: s.size,
-					};
-				} catch {
-					return {
-						filename: f,
-						path: fullPath,
-						timestamp: parseTimestamp(f) ?? new Date(0),
-						size: 0,
-					};
-				}
-			})
-			.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-
-		return files;
-	} catch {
-		return [];
-	}
-}
+// rollbackSettings / listBackups 已拆分到 settings-backup-rollback.ts，通过 re-export 暴露
