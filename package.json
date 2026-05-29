@@ -1,6 +1,6 @@
 {
   "name": "@pi-atelier/shared-utils",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Shared utilities for pi-atelier extensions — settings, project config, memory parsing, tool output truncation, and more",
   "type": "module",
   "main": "src/index.ts",
@@ -47,5 +47,17 @@
     "tsconfig.json",
     "vitest.config.ts",
     "package.json"
-  ]
+  ],
+  "keywords": [
+    "pi-package"
+  ],
+  "homepage": "https://catlain.github.io/pi-atelier/",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/catlain/pi-shared-utils.git"
+  },
+  "bugs": {
+    "url": "https://github.com/catlain/pi-shared-utils/issues"
+  },
+  "license": "MIT"
 }

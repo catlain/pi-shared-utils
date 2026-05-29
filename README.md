@@ -1,5 +1,7 @@
 [English](README.en.md) | 程序中文文档
 
+> 📖 **[pi-atelier 实战指南](https://catlain.github.io/pi-atelier/)** — 从零教会你使用 pi-atelier 扩展生态，让 AI 编程助手从「会写代码」进化到「会管理项目」
+
 # pi-shared-utils
 
 Shared utility library for the [pi](https://github.com/earendil-works/pi-coding-agent) extension ecosystem — memory file parsing, path constants, settings management, tool output truncation, and more. Used by 7+ pi extensions.
