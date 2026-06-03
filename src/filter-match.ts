@@ -5,6 +5,8 @@
  * 零外部依赖，纯逻辑函数。
  */
 
+import * as path from "node:path";
+
 // ── globToRegex ──────────────────────────────────────
 
 /** 将简易 glob（只含 *）转为 RegExp。仅处理 *，不处理 ? 和 [] */
@@ -92,8 +94,8 @@ export function matchFile(input: string | undefined, filePaths: string[]): boole
 		if (input.includes("*")) {
 			if (globToRegex(input).test(fp)) return true;
 		} else {
-			// 子串匹配
-			if (fp.includes(input)) return true;
+			// 子串匹配（归一化路径分隔符后比较）
+			if (path.normalize(fp).includes(path.normalize(input))) return true;
 		}
 	}
 	return false;

@@ -146,6 +146,19 @@ describe("matchFile", () => {
 	it("undefined 输入 → true（不过滤）", () => {
 		expect(matchFile(undefined, paths1)).toBe(true);
 	});
+
+	// Windows 路径分隔符兼容
+	it("路径分隔符：正斜杠 input 匹配反斜杠路径", () => {
+		expect(matchFile("src/entries-nav.ts", ["src\\entries-nav.ts"])).toBe(true);
+	});
+	it("路径分隔符：反斜杠 input 匹配正斜杠路径", () => {
+		expect(matchFile("src\\entries-nav.ts", ["src/entries-nav.ts"])).toBe(true);
+	});
+	it("路径分隔符：Windows 绝对路径混合分隔符", () => {
+		expect(
+			matchFile("D:/Project/app/src/main.ts", ["D:\\Project\\app\\src\\main.ts"]),
+		).toBe(true);
+	});
 });
 
 // ── extractStringValues ──────────────────────────────

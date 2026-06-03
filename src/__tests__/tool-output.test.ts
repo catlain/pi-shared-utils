@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import * as path from "node:path";
 
 const { mockTruncateHead, mockFormatSize, mockCreateHashObj } = vi.hoisted(() => ({
 	mockTruncateHead: vi.fn(),
@@ -79,7 +80,7 @@ describe("truncateToolOutput", () => {
 		expect(r.outputLines).toBe(50);
 		expect(r.outputBytes).toBe(25_000);
 		expect(r.savedPath).toBeDefined();
-		expect(r.savedPath).toContain("/pi-tool-output/my-tool-a1b2c3d4e5f6.txt");
+		expect(r.savedPath).toContain(path.join("pi-tool-output", "my-tool-a1b2c3d4e5f6.txt"));
 	});
 
 	it("accepts custom maxLines and maxBytes", () => {

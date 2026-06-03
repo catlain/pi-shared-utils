@@ -10,6 +10,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as path from "node:path";
 
 // 默认情况下的静态导入（无环境变量）
 import {
@@ -24,6 +25,9 @@ import {
 } from "../paths";
 
 const ORIG_ENV = process.env.PI_AGENT_DIR;
+
+// 跨平台路径构建：测试期望值用 path.join，在 Windows/WSL 下都能通过
+const pjoin = (...segments: string[]) => path.join(...segments);
 
 beforeEach(() => {
 	delete process.env.PI_AGENT_DIR;
@@ -41,7 +45,7 @@ afterEach(() => {
 
 describe("AGENT_DIR", () => {
 	it("默认值为 ~/.pi/agent（无环境变量时）", () => {
-		const expected = `${require("node:os").homedir()}/.pi/agent`;
+		const expected = pjoin(require("node:os").homedir(), ".pi", "agent");
 		expect(AGENT_DIR).toBe(expected);
 	});
 
@@ -58,7 +62,7 @@ describe("AGENT_DIR", () => {
 		process.env.PI_AGENT_DIR = "";
 		vi.resetModules();
 		const { AGENT_DIR: emptyDir } = await import("../paths");
-		const expected = `${require("node:os").homedir()}/.pi/agent`;
+		const expected = pjoin(require("node:os").homedir(), ".pi", "agent");
 		expect(emptyDir).toBe(expected);
 		delete process.env.PI_AGENT_DIR;
 		vi.resetModules();
@@ -69,7 +73,8 @@ describe("AGENT_DIR", () => {
 		vi.resetModules();
 		const { MODELS_CONFIG_PATH: modelPath } = await import("../paths");
 		expect(modelPath).not.toContain("//");
-		expect(modelPath).toBe("/custom/pi-agent/models.json");
+		// 跨平台：不检查具体分隔符，只检查路径段正确
+		expect(modelPath).toBe(path.normalize("/custom/pi-agent/models.json"));
 		delete process.env.PI_AGENT_DIR;
 		vi.resetModules();
 	});
@@ -79,34 +84,34 @@ describe("AGENT_DIR", () => {
 
 describe("路径常量拼接", () => {
 	const homeDir = require("node:os").homedir();
-	const defaultAgentDir = `${homeDir}/.pi/agent`;
+	const defaultAgentDir = pjoin(homeDir, ".pi", "agent");
 
 	it("MODELS_CONFIG_PATH = AGENT_DIR/models.json", () => {
-		expect(MODELS_CONFIG_PATH).toBe(`${defaultAgentDir}/models.json`);
+		expect(MODELS_CONFIG_PATH).toBe(pjoin(defaultAgentDir, "models.json"));
 	});
 
 	it("MEMORY_MD_PATH = AGENT_DIR/MEMORY.md", () => {
-		expect(MEMORY_MD_PATH).toBe(`${defaultAgentDir}/MEMORY.md`);
+		expect(MEMORY_MD_PATH).toBe(pjoin(defaultAgentDir, "MEMORY.md"));
 	});
 
 	it("MEMORY_DIR = AGENT_DIR/memory", () => {
-		expect(MEMORY_DIR).toBe(`${defaultAgentDir}/memory`);
+		expect(MEMORY_DIR).toBe(pjoin(defaultAgentDir, "memory"));
 	});
 
 	it("MCP_CONFIG_PATH = AGENT_DIR/mcp.json", () => {
-		expect(MCP_CONFIG_PATH).toBe(`${defaultAgentDir}/mcp.json`);
+		expect(MCP_CONFIG_PATH).toBe(pjoin(defaultAgentDir, "mcp.json"));
 	});
 
 	it("MCP_CACHE_PATH = AGENT_DIR/mcp-cache.json", () => {
-		expect(MCP_CACHE_PATH).toBe(`${defaultAgentDir}/mcp-cache.json`);
+		expect(MCP_CACHE_PATH).toBe(pjoin(defaultAgentDir, "mcp-cache.json"));
 	});
 
 	it("AGENTS_DIR = AGENT_DIR/agents", () => {
-		expect(AGENTS_DIR).toBe(`${defaultAgentDir}/agents`);
+		expect(AGENTS_DIR).toBe(pjoin(defaultAgentDir, "agents"));
 	});
 
 	it("GLOBAL_RULES_PATH = AGENT_DIR/extensions/shepherd/rules.json", () => {
-		expect(GLOBAL_RULES_PATH).toBe(`${defaultAgentDir}/extensions/shepherd/rules.json`);
+		expect(GLOBAL_RULES_PATH).toBe(pjoin(defaultAgentDir, "extensions", "shepherd", "rules.json"));
 	});
 });
 
