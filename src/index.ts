@@ -15,12 +15,16 @@ export {
 	pushHint,
 } from "./ephemeral";
 export {
+	extractStringValues,
+	matchFile,
+	matchToolName,
+} from "./filter-match";
+export {
 	buildFileName,
 	type MemoryEntry,
 	parseFileName,
 	scanMemoryDir,
 } from "./memory-parser";
-
 export {
 	AGENT_DIR,
 	AGENTS_DIR,
@@ -56,16 +60,11 @@ export {
 	setSettingsValue,
 } from "./settings";
 export {
-	listBackups,
-	patchSettingsSectionWithBackup,
-	rollbackSettings,
 	type BackupEntry,
+	listBackups,
 	type PatchBackupOptions,
 	type PatchBackupResult,
+	patchSettingsSectionWithBackup,
 	type RollbackOptions,
+	rollbackSettings,
 } from "./settings-backup";
-export {
-	matchToolName,
-	matchFile,
-	extractStringValues,
-} from "./filter-match";

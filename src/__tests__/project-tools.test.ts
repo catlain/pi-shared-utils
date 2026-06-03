@@ -4,13 +4,7 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { SETTINGS_PATH } from "../paths";
 import { clearProjectSettingsCache } from "../project-config";
-import {
-	getDisabledMcpServers,
-	getDisabledTools,
-	getEffectiveToolFilter,
-	getEnabledTools,
-	isToolDisabled,
-} from "../project-tools";
+import { getDisabledMcpServers, getEffectiveToolFilter, getEnabledTools } from "../project-tools";
 
 const TEST_DIR = join(tmpdir(), "pi-shared-utils-tools-test");
 

@@ -16,12 +16,13 @@
 
 import { existsSync } from "node:fs";
 import { withFileLock } from "./file-lock";
-import { validateConfigSchema, type SchemaError } from "./project-config";
-import { isArrayPatch, applyArrayPatch } from "./settings-array";
-import { createBackup, getDefaultBackupDir, readFull, writeFull } from "./settings-backup-utils";
+import type { SchemaError } from "./project-config";
+import { applyArrayPatch, isArrayPatch } from "./settings-array";
 import { rotateBackups } from "./settings-backup-rollback";
-export { rollbackSettings, listBackups } from "./settings-backup-rollback";
+import { createBackup, getDefaultBackupDir, readFull, writeFull } from "./settings-backup-utils";
+
 export type { BackupEntry, RollbackOptions } from "./settings-backup-rollback";
+export { listBackups, rollbackSettings } from "./settings-backup-rollback";
 
 // ── 类型 ─────────────────────────────────────────────────
 
@@ -79,7 +80,11 @@ export function patchSettingsSectionWithBackup<T extends Record<string, any>>(
 
 	// ── 数组 patch 分支 ──
 	if (isArrayPatch(patch)) {
-		const currentArr: any[] = Array.isArray(settings[section]) ? settings[section] : (Array.isArray(defaults) ? defaults : []);
+		const currentArr: any[] = Array.isArray(settings[section])
+			? settings[section]
+			: Array.isArray(defaults)
+				? defaults
+				: [];
 		const mergedArr = applyArrayPatch(currentArr, patch);
 
 		// 备份

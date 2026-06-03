@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -8,9 +8,7 @@ const TEST_DIR = join(tmpdir(), `pi-settings-backup-test-${process.pid}`);
 const TEST_SETTINGS = join(TEST_DIR, "settings.json");
 const TEST_BACKUP_DIR = join(TEST_DIR, "settings-backup");
 
-const { patchSettingsSectionWithBackup, rollbackSettings, listBackups } = await import(
-	"../settings-backup"
-);
+const { patchSettingsSectionWithBackup, rollbackSettings, listBackups } = await import("../settings-backup");
 
 // ── 测试辅助 ────────────────────────────────────────────
 
@@ -339,9 +337,7 @@ describe("settings-backup", () => {
 
 		it("无备份时抛错", () => {
 			writeTestSettings({ context: { distillThreshold: 5000 } });
-			expect(() => rollbackSettings({ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR })).toThrow(
-				/无可用备份/,
-			);
+			expect(() => rollbackSettings({ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR })).toThrow(/无可用备份/);
 		});
 
 		it("回滚后删除已恢复的备份", () => {
@@ -459,13 +455,13 @@ describe("settings-backup", () => {
 				{ threshold: 200 },
 				{ threshold: 100 },
 				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, backup: false },
-				);
+			);
 			const result2 = patchSettingsSectionWithBackup(
 				"shepherd",
 				{ maxWarnings: 3 },
 				{ maxWarnings: 5 },
 				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, backup: false },
-				);
+			);
 
 			// 两次 patch 都成功
 			expect(result1.config.threshold).toBe(200);
@@ -487,7 +483,7 @@ describe("settings-backup", () => {
 				{ threshold: 200 },
 				{ threshold: 100 },
 				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, backup: false },
-				);
+			);
 
 			// 锁目录不应残留
 			expect(existsSync(`${TEST_SETTINGS}.lock`)).toBe(false);
@@ -511,7 +507,7 @@ describe("settings-backup", () => {
 				{ threshold: 300 },
 				{ threshold: 100 },
 				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, backup: false },
-				);
+			);
 
 			expect(result.config.threshold).toBe(300);
 			expect(existsSync(lockDir)).toBe(false);

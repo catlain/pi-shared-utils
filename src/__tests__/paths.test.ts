@@ -9,8 +9,8 @@
  * 5) 边界：环境变量为空字符串
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as path from "node:path";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // 默认情况下的静态导入（无环境变量）
 import {

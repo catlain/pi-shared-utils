@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -7,9 +7,7 @@ const TEST_DIR = join(tmpdir(), `pi-settings-adv-test-${process.pid}`);
 const TEST_SETTINGS = join(TEST_DIR, "settings.json");
 const TEST_BACKUP_DIR = join(TEST_DIR, "settings-backup");
 
-const { patchSettingsSectionWithBackup, rollbackSettings, listBackups } = await import(
-	"../settings-backup"
-);
+const { patchSettingsSectionWithBackup, rollbackSettings, listBackups } = await import("../settings-backup");
 
 function writeTestSettings(content: Record<string, any>) {
 	mkdirSync(TEST_DIR, { recursive: true });
@@ -95,15 +93,21 @@ describe("settings-backup 高级测试", () => {
 			});
 
 			patchSettingsSectionWithBackup(
-				"context", { threshold: 200 }, { threshold: 100 },
+				"context",
+				{ threshold: 200 },
+				{ threshold: 100 },
 				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, backup: false },
 			);
 			patchSettingsSectionWithBackup(
-				"shepherd", { maxWarnings: 10 }, { maxWarnings: 5 },
+				"shepherd",
+				{ maxWarnings: 10 },
+				{ maxWarnings: 5 },
 				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, backup: false },
 			);
 			patchSettingsSectionWithBackup(
-				"mcp", { disabled: ["server-a"] }, { disabled: [] },
+				"mcp",
+				{ disabled: ["server-a"] },
+				{ disabled: [] },
 				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, backup: false },
 			);
 
@@ -141,12 +145,16 @@ describe("settings-backup 高级测试", () => {
 			writeTestSettings({ context: { threshold: 100 } });
 
 			patchSettingsSectionWithBackup(
-				"context", { threshold: 200 }, { threshold: 100 },
+				"context",
+				{ threshold: 200 },
+				{ threshold: 100 },
 				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR },
 			);
 			await new Promise((r) => setTimeout(r, 10));
 			patchSettingsSectionWithBackup(
-				"context", { threshold: 300 }, { threshold: 100 },
+				"context",
+				{ threshold: 300 },
+				{ threshold: 100 },
 				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR },
 			);
 
@@ -186,7 +194,9 @@ describe("settings-backup 高级测试", () => {
 			writeTestSettings({ context: { threshold: 100 } });
 
 			patchSettingsSectionWithBackup(
-				"context", { threshold: 200 }, { threshold: 100 },
+				"context",
+				{ threshold: 200 },
+				{ threshold: 100 },
 				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, backup: false },
 			);
 
@@ -207,10 +217,7 @@ describe("settings-backup 高级测试", () => {
 			mkdirSync(projectSettingsDir, { recursive: true });
 
 			// 项目级覆盖全局配置（同 key 不同值）
-			writeFileSync(
-				join(projectSettingsDir, "settings.json"),
-				JSON.stringify({ context: { threshold: 999 } }),
-			);
+			writeFileSync(join(projectSettingsDir, "settings.json"), JSON.stringify({ context: { threshold: 999 } }));
 
 			// detectConfigConflicts 读全局 SETTINGS_PATH，项目级 threshold=999 和全局不同
 			const conflicts = detectConfigConflicts(projectDir);
@@ -228,12 +235,16 @@ describe("settings-backup 高级测试", () => {
 			writeTestSettings({ context: { threshold: 100 } });
 
 			patchSettingsSectionWithBackup(
-				"context", { threshold: 200 }, { threshold: 100 },
+				"context",
+				{ threshold: 200 },
+				{ threshold: 100 },
 				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR },
 			);
 			await new Promise((r) => setTimeout(r, 10));
 			patchSettingsSectionWithBackup(
-				"context", { threshold: 300 }, { threshold: 100 },
+				"context",
+				{ threshold: 300 },
+				{ threshold: 100 },
 				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR },
 			);
 
@@ -246,12 +257,16 @@ describe("settings-backup 高级测试", () => {
 			writeTestSettings({ context: { threshold: 100 } });
 
 			patchSettingsSectionWithBackup(
-				"context", { threshold: 200 }, { threshold: 100 },
+				"context",
+				{ threshold: 200 },
+				{ threshold: 100 },
 				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR },
 			);
 			await new Promise((r) => setTimeout(r, 10));
 			patchSettingsSectionWithBackup(
-				"context", { threshold: 300 }, { threshold: 100 },
+				"context",
+				{ threshold: 300 },
+				{ threshold: 100 },
 				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR },
 			);
 

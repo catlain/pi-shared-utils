@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as path from "node:path";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { mockTruncateHead, mockFormatSize, mockCreateHashObj } = vi.hoisted(() => ({
 	mockTruncateHead: vi.fn(),
@@ -21,7 +21,7 @@ vi.mock("node:crypto", () => ({
 	createHash: vi.fn(() => mockCreateHashObj),
 }));
 
-import { truncateToolOutput, truncatedResult } from "../tool-output";
+import { truncatedResult, truncateToolOutput } from "../tool-output";
 
 const TRUNC = {
 	content: "head",

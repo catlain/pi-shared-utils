@@ -4,7 +4,7 @@
  * parseFileName 和 buildFileName 是纯函数，无需 mock。
  * scanMemoryDir 需要 mock node:fs。
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockFs = vi.hoisted(() => ({
 	existsSync: vi.fn(),
@@ -14,7 +14,7 @@ const mockFs = vi.hoisted(() => ({
 
 vi.mock("node:fs", () => mockFs);
 
-import { parseFileName, buildFileName, scanMemoryDir } from "../memory-parser";
+import { buildFileName, parseFileName, scanMemoryDir } from "../memory-parser";
 
 beforeEach(() => {
 	vi.clearAllMocks();
@@ -99,10 +99,7 @@ describe("scanMemoryDir", () => {
 
 	it("scans and parses memory files correctly", () => {
 		mockFs.existsSync.mockReturnValue(true);
-		mockFs.readdirSync.mockReturnValue([
-			"coding--git,lint.md",
-			"notes.md",
-		]);
+		mockFs.readdirSync.mockReturnValue(["coding--git,lint.md", "notes.md"]);
 		mockFs.readFileSync.mockImplementation((filePath: string) => {
 			if (filePath.includes("coding")) {
 				return "# 编码规范\n内容\n";

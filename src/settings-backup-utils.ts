@@ -4,7 +4,7 @@
  * 备份目录管理、时间戳格式化、文件读写等。
  */
 
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 // ── 常量 ─────────────────────────────────────────────────
@@ -23,8 +23,8 @@ export function formatTimestamp(date: Date): string {
 export function parseTimestamp(filename: string): Date | null {
 	const match = filename.match(/^settings\.(.+)\.json$/);
 	if (!match) return null;
-	const isoStr = match[1].replace(/-/g, (m, offset) => {
-		const chars = match[1];
+	const isoStr = match[1].replace(/-/g, (_m, offset) => {
+		const _chars = match[1];
 		if (offset === 4 || offset === 7) return "-";
 		if (offset === 10) return "T";
 		if (offset === 13 || offset === 16) return ":";

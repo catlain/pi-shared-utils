@@ -1,42 +1,23 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.4.15/schema.json",
-	"vcs": {
-		"enabled": true,
-		"clientKind": "git",
-		"useIgnoreFile": true
-	},
+	"$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
+	"extends": ["../../../../config/lint-base.json"],
 	"files": {
-		"ignoreUnknown": false,
 		"includes": ["src/**/*.ts"]
 	},
 	"formatter": {
-		"enabled": true,
-		"indentStyle": "tab",
 		"lineWidth": 120
 	},
 	"linter": {
-		"enabled": true,
 		"rules": {
-			"recommended": true,
 			"correctness": {
-				"noUnusedVariables": "warn",
 				"noUnusedImports": "warn"
 			}
 		}
 	},
 	"javascript": {
 		"formatter": {
-			"quoteStyle": "double",
 			"semicolons": "always",
 			"trailingCommas": "all"
-		}
-	},
-	"assist": {
-		"enabled": true,
-		"actions": {
-			"source": {
-				"organizeImports": "on"
-			}
 		}
 	}
 }

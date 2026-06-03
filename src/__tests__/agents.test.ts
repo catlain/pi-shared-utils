@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // vi.mock factory is hoisted, use vi.hoisted to declare variables at the hoisted position
 const mockFs = vi.hoisted(() => ({
@@ -9,7 +9,7 @@ const mockFs = vi.hoisted(() => ({
 
 vi.mock("node:fs", () => mockFs);
 
-import { discoverAgents, getAgentDescription, formatAgentsList } from "../agents";
+import { discoverAgents, formatAgentsList, getAgentDescription } from "../agents";
 
 beforeEach(() => {
 	vi.clearAllMocks();
@@ -23,13 +23,7 @@ describe("discoverAgents", () => {
 
 	it("filters .md files and strips leading underscore", () => {
 		mockFs.existsSync.mockReturnValue(true);
-		mockFs.readdirSync.mockReturnValue([
-			"coder.md",
-			"_private.md",
-			"reviewer.md",
-			"readme.txt",
-			"notes.md",
-		]);
+		mockFs.readdirSync.mockReturnValue(["coder.md", "_private.md", "reviewer.md", "readme.txt", "notes.md"]);
 		const result = discoverAgents();
 		expect(result).toEqual(["coder", "reviewer", "notes"]);
 	});
@@ -49,14 +43,9 @@ describe("discoverAgents", () => {
 
 describe("getAgentDescription", () => {
 	it("extracts description from frontmatter", () => {
-		const content = [
-			"---",
-			"description: 代码审查助手",
-			"version: 1.0",
-			"---",
-			"# Coder Agent",
-			"Some content",
-		].join("\n");
+		const content = ["---", "description: 代码审查助手", "version: 1.0", "---", "# Coder Agent", "Some content"].join(
+			"\n",
+		);
 		mockFs.readFileSync.mockReturnValue(content);
 		const result = getAgentDescription("coder");
 		expect(result).toBe("代码审查助手");
@@ -77,23 +66,14 @@ describe("getAgentDescription", () => {
 	});
 
 	it("uses default description when frontmatter has no description field", () => {
-		const content = [
-			"---",
-			"title: Agent",
-			"---",
-			"# Content",
-		].join("\n");
+		const content = ["---", "title: Agent", "---", "# Content"].join("\n");
 		mockFs.readFileSync.mockReturnValue(content);
 		const result = getAgentDescription("agent");
 		expect(result).toBe("read, grep, find, ls");
 	});
 
 	it("handles description with trailing whitespace", () => {
-		const content = [
-			"---",
-			"description:  帮我写代码  ",
-			"---",
-		].join("\n");
+		const content = ["---", "description:  帮我写代码  ", "---"].join("\n");
 		mockFs.readFileSync.mockReturnValue(content);
 		const result = getAgentDescription("agent");
 		expect(result).toBe("帮我写代码");

@@ -55,12 +55,11 @@ describe("patchSettingsSectionWithBackup — 数组 addItem", () => {
 			packages: [{ source: "git:github.com/catlain/pi-shepherd" }],
 		});
 
-		patchSettingsSectionWithBackup(
-			"packages",
-			{ addItem: { source: "git:github.com/catlain/pi-foo" } },
-			[],
-			{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, validate: false },
-		);
+		patchSettingsSectionWithBackup("packages", { addItem: { source: "git:github.com/catlain/pi-foo" } }, [], {
+			settingsPath: TEST_SETTINGS,
+			backupDir: TEST_BACKUP_DIR,
+			validate: false,
+		});
 
 		const written = readTestSettings();
 		expect(written.packages).toHaveLength(2);
@@ -87,12 +86,11 @@ describe("patchSettingsSectionWithBackup — 数组 addItem", () => {
 			packages: ["npm:pi-tool-display"],
 		});
 
-		const result = patchSettingsSectionWithBackup(
-			"packages",
-			{ addItem: "npm:pi-tool-display" },
-			[],
-			{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, validate: false },
-		);
+		const result = patchSettingsSectionWithBackup("packages", { addItem: "npm:pi-tool-display" }, [], {
+			settingsPath: TEST_SETTINGS,
+			backupDir: TEST_BACKUP_DIR,
+			validate: false,
+		});
 
 		expect(result.config).toHaveLength(1);
 	});
@@ -103,10 +101,7 @@ describe("patchSettingsSectionWithBackup — 数组 addItem", () => {
 describe("patchSettingsSectionWithBackup — 数组 removeItem", () => {
 	it("应按 source 字段匹配删除对象元素", () => {
 		writeTestSettings({
-			packages: [
-				{ source: "git:github.com/catlain/pi-shepherd" },
-				{ source: "git:github.com/catlain/pi-foo" },
-			],
+			packages: [{ source: "git:github.com/catlain/pi-shepherd" }, { source: "git:github.com/catlain/pi-foo" }],
 		});
 
 		const result = patchSettingsSectionWithBackup(
@@ -124,12 +119,11 @@ describe("patchSettingsSectionWithBackup — 数组 removeItem", () => {
 			packages: ["npm:pi-tool-display", "npm:pi-foo"],
 		});
 
-		const result = patchSettingsSectionWithBackup(
-			"packages",
-			{ removeItem: "npm:pi-foo" },
-			[],
-			{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, validate: false },
-		);
+		const result = patchSettingsSectionWithBackup("packages", { removeItem: "npm:pi-foo" }, [], {
+			settingsPath: TEST_SETTINGS,
+			backupDir: TEST_BACKUP_DIR,
+			validate: false,
+		});
 
 		expect(result.config).toEqual(["npm:pi-tool-display"]);
 	});
@@ -172,9 +166,7 @@ describe("patchSettingsSectionWithBackup — 数组 replaceItem", () => {
 			{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, validate: false },
 		);
 
-		expect(result.config).toEqual([
-			{ source: "git:github.com/catlain/pi-usage-stats", extensions: ["+index.ts"] },
-		]);
+		expect(result.config).toEqual([{ source: "git:github.com/catlain/pi-usage-stats", extensions: ["+index.ts"] }]);
 	});
 
 	it("应按字符串精确匹配并替换", () => {

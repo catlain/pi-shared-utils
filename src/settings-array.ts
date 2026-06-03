@@ -32,11 +32,7 @@ export interface ArrayPatch {
 
 /** 判断 patch 是否包含数组操作 */
 export function isArrayPatch(patch: any): patch is ArrayPatch {
-	return (
-		patch &&
-		typeof patch === "object" &&
-		("addItem" in patch || "removeItem" in patch || "replaceItem" in patch)
-	);
+	return patch && typeof patch === "object" && ("addItem" in patch || "removeItem" in patch || "replaceItem" in patch);
 }
 
 /** 判断两个数组元素是否匹配 */

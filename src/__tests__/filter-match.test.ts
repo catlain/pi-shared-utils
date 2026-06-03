@@ -2,8 +2,8 @@
  * filter-match 测试 — matchToolName / matchFile / extractStringValues
  */
 
-import { describe, it, expect } from "vitest";
-import { matchToolName, matchFile, extractStringValues } from "../filter-match";
+import { describe, expect, it } from "vitest";
+import { extractStringValues, matchFile, matchToolName } from "../filter-match";
 
 // ── matchToolName ────────────────────────────────────
 
@@ -83,7 +83,8 @@ describe("matchToolName", () => {
 	});
 	it("多值含通配符：code_graph*|bash → code_graph_project_map ✅", () => {
 		expect(matchToolName("code_graph*|bash", "code_graph_project_map")).toBe(true);
-	});	it("多值含通配符：code_graph*|bash → code_graph ✅（精确匹配 bash 部分）", () => {
+	});
+	it("多值含通配符：code_graph*|bash → code_graph ✅（精确匹配 bash 部分）", () => {
 		expect(matchToolName("code_graph*|bash", "code_graph")).toBe(true);
 	});
 	it("多值含前缀：code_graph|bash → bash ✅", () => {
@@ -155,9 +156,7 @@ describe("matchFile", () => {
 		expect(matchFile("src\\entries-nav.ts", ["src/entries-nav.ts"])).toBe(true);
 	});
 	it("路径分隔符：Windows 绝对路径混合分隔符", () => {
-		expect(
-			matchFile("D:/Project/app/src/main.ts", ["D:\\Project\\app\\src\\main.ts"]),
-		).toBe(true);
+		expect(matchFile("D:/Project/app/src/main.ts", ["D:\\Project\\app\\src\\main.ts"])).toBe(true);
 	});
 });
 
@@ -173,9 +172,7 @@ describe("extractStringValues", () => {
 
 	it("从嵌套对象递归提取", () => {
 		const result = extractStringValues({
-			changes: [
-				{ oldText: "foo", newText: "bar" },
-			],
+			changes: [{ oldText: "foo", newText: "bar" }],
 			path: "/src/edit.ts",
 		});
 		expect(result).toContain("/src/edit.ts");

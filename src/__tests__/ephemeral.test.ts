@@ -4,7 +4,7 @@
  * 模块内 _hints/_labels 是模块级变量，每次 import 可能返回缓存模块。
  * 使用 vi.resetModules() 确保每个测试得到干净的模块状态。
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 function importEphemeral() {
 	return import("../ephemeral");

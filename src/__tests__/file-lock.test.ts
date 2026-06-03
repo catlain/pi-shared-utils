@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── Mock fs ─────────────────────────────────────────────
 // vi.hoisted ensures variables are available before vi.mock factory runs
@@ -101,9 +101,7 @@ describe("acquireLock", () => {
 		});
 		mockStatSync.mockReturnValue(makeRecentStat());
 
-		expect(() => acquireLock("/tmp/test.lock")).toThrow(
-			"无法获取文件锁: /tmp/test.lock.lock（尝试 50 次后超时）",
-		);
+		expect(() => acquireLock("/tmp/test.lock")).toThrow("无法获取文件锁: /tmp/test.lock.lock（尝试 50 次后超时）");
 
 		expect(mockMkdirSync).toHaveBeenCalledTimes(50);
 		expect(mockStatSync).toHaveBeenCalledTimes(50);

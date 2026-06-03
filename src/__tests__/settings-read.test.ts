@@ -3,11 +3,16 @@
  *
  * 使用有状态的 fs mock：writeFileSync 更新存储区，readFileSync 读取最新内容。
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const store = vi.hoisted(() => {
 	let content = "";
-	return { get: () => content, set: (v: string) => { content = v; } };
+	return {
+		get: () => content,
+		set: (v: string) => {
+			content = v;
+		},
+	};
 });
 
 const mockOs = vi.hoisted(() => ({

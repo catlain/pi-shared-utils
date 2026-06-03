@@ -1,24 +1,24 @@
-import { defineConfig } from "vitest/config";
 import path from "node:path";
+import { defineConfig } from "vitest/config";
 
 const ROOT = path.resolve(__dirname, "../..");
 
 export default defineConfig({
-  resolve: {
-    alias: {
-      "pi-shared-utils": path.resolve(ROOT, "packages/pi-shared-utils/src/index"),
-      "@pi-atelier/shared-utils": path.resolve(ROOT, "packages/pi-shared-utils/src/index"),
-    },
-  },
-  test: {
-    include: ["src/__tests__/**/*.test.ts"],
-    environment: "node",
-    testTimeout: 10000,
-    fileParallelism: false,
-    coverage: {
-      provider: "v8",
-      reporter: ["text", "html"],
-      exclude: ["src/index.ts", "vitest.config.ts", "src/__tests__/**"],
-    },
-  },
+	resolve: {
+		alias: {
+			"pi-shared-utils": path.resolve(ROOT, "packages/pi-shared-utils/src/index"),
+			"@pi-atelier/shared-utils": path.resolve(ROOT, "packages/pi-shared-utils/src/index"),
+		},
+	},
+	test: {
+		include: ["src/__tests__/**/*.test.ts"],
+		environment: "node",
+		testTimeout: 10000,
+		fileParallelism: false,
+		coverage: {
+			provider: "v8",
+			reporter: ["text", "html"],
+			exclude: ["src/index.ts", "vitest.config.ts", "src/__tests__/**"],
+		},
+	},
 });

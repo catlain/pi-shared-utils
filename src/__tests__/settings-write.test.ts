@@ -1,11 +1,16 @@
 /**
  * settings.ts 写入操作测试（patchSettingsSection, setSettingsValue）
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const store = vi.hoisted(() => {
 	let content = "";
-	return { get: () => content, set: (v: string) => { content = v; } };
+	return {
+		get: () => content,
+		set: (v: string) => {
+			content = v;
+		},
+	};
 });
 
 const mockOs = vi.hoisted(() => ({
