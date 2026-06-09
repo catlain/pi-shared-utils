@@ -229,6 +229,52 @@ describe("project-config", () => {
 		});
 	});
 
+	describe("deepMerge 边界情况", () => {
+		it("source 中 null 值覆盖 target", () => {
+			createProjectSettings(TEST_DIR, {
+				test: { enabled: null },
+			});
+
+			const defaults = { enabled: true, name: "test" };
+			const result = getEffectiveConfig("test", defaults, TEST_DIR);
+			expect(result.config.enabled).toBeNull();
+			expect(result.config.name).toBe("test");
+		});
+
+		it("数组 concat 时 target 无该字段则直接用 source 数组", () => {
+			createProjectSettings(TEST_DIR, {
+				test: { items: [1, 2] },
+			});
+
+			const defaults = { name: "test" } as Record<string, unknown>;
+			const result = getEffectiveConfig("test", defaults, TEST_DIR, { arrayMerge: "concat" });
+			expect((result.config as Record<string, unknown>).items).toEqual([1, 2]);
+		});
+
+		it("深层嵌套三层合并", () => {
+			createProjectSettings(TEST_DIR, {
+				deep: { level1: { level2: { level3: "deep" } } },
+			});
+
+			const defaults = {
+				level1: { level2: { level3: "default", extra: true } },
+			};
+			const result = getEffectiveConfig("deep", defaults, TEST_DIR);
+			expect(result.config.level1.level2.level3).toBe("deep");
+			expect(result.config.level1.level2.extra).toBe(true);
+		});
+
+		it("source 中原始类型值覆盖 target 的对象", () => {
+			createProjectSettings(TEST_DIR, {
+				test: { config: "simple" },
+			});
+
+			const defaults = { config: { nested: true, depth: 3 } };
+			const result = getEffectiveConfig("test", defaults, TEST_DIR);
+			expect(result.config.config).toBe("simple");
+		});
+	});
+
 	describe("getDisabledMcpServers", () => {
 		it("无配置时返回空", () => {
 			const restore = mockGlobalSettings({});

@@ -62,8 +62,8 @@ export interface ToolFilter {
 // ── 内部工具 ─────────────────────────────────────────────
 
 /** 深度合并两个对象，source 覆盖 target */
-function deepMerge<T extends Record<string, any>>(target: T, source: Record<string, any>, options?: MergeOptions): T {
-	const result = { ...target } as Record<string, any>;
+function deepMerge<T extends Record<string, unknown>>(target: T, source: Record<string, unknown>, options?: MergeOptions): T {
+	const result = { ...target } as Record<string, unknown>;
 	for (const key of Object.keys(source)) {
 		if (
 			source[key] !== null &&
@@ -85,7 +85,7 @@ function deepMerge<T extends Record<string, any>>(target: T, source: Record<stri
 }
 
 /** 读取项目级 settings.json */
-export function readProjectSettings(cwd: string): Record<string, any> {
+export function readProjectSettings(cwd: string): Record<string, unknown> {
 	const projectSettingsPath = join(cwd, ".pi", "settings.json");
 	if (!existsSync(projectSettingsPath)) return {};
 	try {

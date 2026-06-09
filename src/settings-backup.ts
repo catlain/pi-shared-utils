@@ -39,7 +39,7 @@ export interface PatchBackupOptions {
 	validate?: boolean;
 }
 
-export interface PatchBackupResult<T extends Record<string, any>> {
+export interface PatchBackupResult<T extends Record<string, unknown>> {
 	/** 合并后的配置 */
 	config: T;
 	/** 类型校验错误 */
@@ -63,7 +63,7 @@ export interface PatchBackupResult<T extends Record<string, any>> {
  * @param options - 备份和校验选项
  * @returns 合并后的配置 + 校验错误
  */
-export function patchSettingsSectionWithBackup<T extends Record<string, any>>(
+export function patchSettingsSectionWithBackup<T extends Record<string, unknown>>(
 	section: string,
 	patch: Partial<T>,
 	defaults: T,
