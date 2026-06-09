@@ -82,6 +82,33 @@ describe("drainHints", () => {
 	});
 });
 
+describe("buffer limit", () => {
+	it("pushHint discards oldest hints when exceeding MAX_HINTS (100)", async () => {
+		const mod = await importEphemeral();
+		// 推入 102 条，超出 100 上限
+		for (let i = 0; i < 102; i++) {
+			mod.pushHint(`hint-${i}`, i % 2 === 0 ? `label-${i}` : undefined);
+		}
+		// 缓冲区应该只保留最新的 100 条
+		const drained = mod.drainHints();
+		const lines = drained!.split("\n\n");
+		expect(lines).toHaveLength(100);
+		// 最旧的 2 条被丢弃
+		expect(lines[0]).toBe("hint-2");
+		expect(lines[99]).toBe("hint-101");
+	});
+
+	it("labels also trimmed when hints exceed limit", async () => {
+		const mod = await importEphemeral();
+		for (let i = 0; i < 102; i++) {
+			mod.pushHint(`hint-${i}`, `label-${i}`);
+		}
+		const labels = mod.peekLabels();
+		expect(labels).toHaveLength(100);
+		expect(labels[0]).toBe("label-2");
+	});
+});
+
 describe("multiple push then drain", () => {
 	it("push 3 hints without labels", async () => {
 		const mod = await importEphemeral();

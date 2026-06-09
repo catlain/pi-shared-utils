@@ -9,13 +9,21 @@
  * payload 持久化/录制已移到 shepherd 扩展内联处理。
  */
 
+const MAX_HINTS = 100;
+
 const _hints: string[] = [];
 const _labels: string[] = [];
 
-/** 推入一条临时提示 */
+/** 推入一条临时提示（超出上限时丢弃最旧的） */
 export function pushHint(hint: string, label?: string): void {
 	_hints.push(hint);
 	if (label) _labels.push(label);
+	// 超出上限时丢弃最旧的
+	if (_hints.length > MAX_HINTS) {
+		const excess = _hints.length - MAX_HINTS;
+		_hints.splice(0, excess);
+		_labels.splice(0, excess);
+	}
 }
 
 /** 查看待发送的标签（不消费） */
