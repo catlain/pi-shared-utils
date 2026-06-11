@@ -7,14 +7,7 @@
 
 import * as path from "node:path";
 
-// ── globToRegex ──────────────────────────────────────
-
-/** 将简易 glob（只含 *）转为 RegExp。仅处理 *，不处理 ? 和 [] */
-function globToRegex(pattern: string): RegExp {
-	const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&");
-	const starReplaced = escaped.replace(/\*/g, ".*");
-	return new RegExp(`^${starReplaced}$`);
-}
+import { globToRegex } from "./glob.js";
 
 // ── matchToolName ────────────────────────────────────
 

@@ -13,6 +13,7 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { SETTINGS_PATH } from "./paths";
+import { globToRegex } from "./glob.js";
 import { readProjectSettings } from "./project-config";
 
 // ── 类型 ─────────────────────────────────────────────────
@@ -103,15 +104,6 @@ export function getEnabledTools(allTools: string[], cwd: string): string[] {
  * @param cwd - 当前项目目录
  * @returns 去重后的禁用 MCP 服务器名称列表
  */
-/**
- * 将 glob 模式转为正则（只支持 * 通配符）
- * "godot_export_*" → /^godot_export_.*$/
- */
-function globToRegex(pattern: string): RegExp {
-	const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&"); // 转义特殊字符
-	const withStar = escaped.replace(/\*/g, ".*"); // * → .*
-	return new RegExp(`^${withStar}$`);
-}
 
 /**
  * 检查工具名是否匹配某个模式（精确匹配或 glob）

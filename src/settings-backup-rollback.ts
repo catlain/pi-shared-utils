@@ -7,7 +7,7 @@
  *   - rotateBackups: 清理旧备份（内部函数）
  */
 
-import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { withFileLock } from "./file-lock";
 import { parseTimestamp } from "./settings-backup-utils";
@@ -78,7 +78,6 @@ export function listBackups(options?: RollbackOptions): BackupEntry[] {
 			.map((f) => {
 				const fullPath = join(backupDir, f);
 				try {
-					const { statSync } = require("node:fs");
 					const s = statSync(fullPath);
 					return {
 						filename: f,

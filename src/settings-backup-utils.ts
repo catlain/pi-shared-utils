@@ -49,16 +49,6 @@ export function createBackup(settingsPath: string, backupDir: string): string {
 	return backupPath;
 }
 
-/** 清理超出 maxBackups 的旧备份 */
-export function rotateBackups(backupDir: string, maxBackups: number, listBackupsFn: (opts: any) => any[]): void {
-	if (!existsSync(backupDir)) return;
-	const backups = listBackupsFn({ backupDir });
-	while (backups.length > maxBackups) {
-		const oldest = backups.pop();
-		if (oldest) rmSync(oldest.path);
-	}
-}
-
 /** 读取完整 settings.json */
 export function readFull(settingsPath: string): Record<string, any> {
 	try {
