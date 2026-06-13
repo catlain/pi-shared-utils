@@ -55,11 +55,11 @@ describe("project-config", () => {
 
 		it("项目配置覆盖默认值", () => {
 			createProjectSettings(TEST_DIR, {
-				context: { distillThreshold: 8000 },
+				"test-cfg-override": { distillThreshold: 8000 },
 			});
 
 			const defaults = { distillThreshold: 5000, agingThreshold: 20 };
-			const result = getEffectiveConfig("context", defaults, TEST_DIR);
+			const result = getEffectiveConfig("test-cfg-override", defaults, TEST_DIR);
 			expect(result.config.distillThreshold).toBe(8000);
 			expect(result.config.agingThreshold).toBe(20);
 			expect(result.sources.distillThreshold).toBe("project");

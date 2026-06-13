@@ -3,9 +3,11 @@
  */
 
 export {
+	type AgentDef,
 	discoverAgents,
 	formatAgentsList,
 	getAgentDescription,
+	loadAgentDef,
 } from "./agents";
 export {
 	drainHints,
