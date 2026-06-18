@@ -292,7 +292,7 @@ describe("settings-backup", () => {
 			const result = patchSettingsSectionWithBackup(
 				"mcp",
 				{ disabled: ["server-a"] },
-				{ disabled: [] },
+				{ disabled: [] as string[] },
 				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR },
 			);
 

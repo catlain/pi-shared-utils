@@ -73,7 +73,7 @@ function deepMerge<T extends Record<string, unknown>>(target: T, source: Record<
 			typeof result[key] === "object" &&
 			!Array.isArray(result[key])
 		) {
-			result[key] = deepMerge(result[key], source[key], options);
+			result[key] = deepMerge(result[key] as Record<string, unknown>, source[key] as Record<string, unknown>, options);
 		} else if (Array.isArray(source[key]) && options?.arrayMerge === "concat" && Array.isArray(result[key])) {
 			// concat 策略：项目级数组追加到全局数组末尾
 			result[key] = [...result[key], ...source[key]];
@@ -120,7 +120,7 @@ export function getEffectiveConfig<T extends Record<string, any>>(
 
 	// 2. 项目级配置
 	const projectSettings = readProjectSettings(cwd);
-	const projectSection = projectSettings?.[section] ?? {};
+	const projectSection: Record<string, unknown> = (projectSettings?.[section] as Record<string, unknown>) ?? {};
 
 	// 3. Deep merge: defaults → global → project
 	const merged = deepMerge(globalConfig, projectSection, options);
@@ -166,8 +166,8 @@ export function detectConfigConflicts(cwd: string, sensitiveKeys?: string[]): Co
 		// 跳过非配置段（如 prompts、skills 等 pi 核心管理的字段）
 		if (section === "prompts" || section === "skills") continue;
 
-		const projectSection = projectSettings[section];
-		const globalSection = globalSettings[section] ?? {};
+		const projectSection: Record<string, unknown> = projectSettings[section] as Record<string, unknown>;
+		const globalSection: Record<string, unknown> = (globalSettings[section] as Record<string, unknown>) ?? {};
 		if (typeof projectSection !== "object" || projectSection === null) continue;
 
 		for (const key of Object.keys(projectSection)) {

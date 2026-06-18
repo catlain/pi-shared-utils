@@ -107,7 +107,7 @@ describe("settings-backup 高级测试", () => {
 			patchSettingsSectionWithBackup(
 				"mcp",
 				{ disabled: ["server-a"] },
-				{ disabled: [] },
+				{ disabled: [] as string[] },
 				{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, backup: false },
 			);
 

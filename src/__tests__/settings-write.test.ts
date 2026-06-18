@@ -37,7 +37,7 @@ function mockSettings(content: Record<string, unknown>): void {
 	mockFs.existsSync.mockReturnValue(true);
 }
 
-function decodedStorage(): Record<string, unknown> {
+function decodedStorage(): any {
 	return JSON.parse(store.get());
 }
 

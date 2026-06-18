@@ -134,7 +134,7 @@ export function getDisabledTools(cwd: string): string[] {
 	const globalTools: string[] = globalMcp?.tools?.disabled ?? [];
 
 	const projectSettings = readProjectSettings(cwd);
-	const projectMcp = projectSettings?.mcp ?? {};
+	const projectMcp: Record<string, any> = (projectSettings?.mcp as Record<string, any>) ?? {};
 	const projectTools: string[] = projectMcp?.tools?.disabled ?? [];
 	const projectEnabled: string[] = projectMcp?.tools?.enabled ?? [];
 
@@ -166,7 +166,7 @@ export function getDisabledMcpServers(cwd: string): string[] {
 	const globalDisabled: string[] = globalMcp.disabled ?? [];
 
 	const projectSettings = readProjectSettings(cwd);
-	const projectMcp = projectSettings?.mcp ?? {};
+	const projectMcp: Record<string, any> = (projectSettings?.mcp as Record<string, any>) ?? {};
 	const projectDisabled: string[] = projectMcp.disabled ?? [];
 	const projectEnabled: string[] = projectMcp.enabled ?? [];
 

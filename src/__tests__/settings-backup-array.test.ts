@@ -41,7 +41,7 @@ describe("patchSettingsSectionWithBackup — 数组 addItem", () => {
 		const result = patchSettingsSectionWithBackup(
 			"packages",
 			{ addItem: { source: "git:github.com/catlain/pi-foo" } },
-			[],
+			[] as unknown as Record<string, unknown>,
 			{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, validate: false },
 		);
 
@@ -55,7 +55,7 @@ describe("patchSettingsSectionWithBackup — 数组 addItem", () => {
 			packages: [{ source: "git:github.com/catlain/pi-shepherd" }],
 		});
 
-		patchSettingsSectionWithBackup("packages", { addItem: { source: "git:github.com/catlain/pi-foo" } }, [], {
+		patchSettingsSectionWithBackup("packages", { addItem: { source: "git:github.com/catlain/pi-foo" } }, [] as unknown as Record<string, unknown>, {
 			settingsPath: TEST_SETTINGS,
 			backupDir: TEST_BACKUP_DIR,
 			validate: false,
@@ -74,7 +74,7 @@ describe("patchSettingsSectionWithBackup — 数组 addItem", () => {
 		const result = patchSettingsSectionWithBackup(
 			"packages",
 			{ addItem: { source: "git:github.com/catlain/pi-shepherd" } },
-			[],
+			[] as unknown as Record<string, unknown>,
 			{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, validate: false },
 		);
 
@@ -86,7 +86,7 @@ describe("patchSettingsSectionWithBackup — 数组 addItem", () => {
 			packages: ["npm:pi-tool-display"],
 		});
 
-		const result = patchSettingsSectionWithBackup("packages", { addItem: "npm:pi-tool-display" }, [], {
+		const result = patchSettingsSectionWithBackup("packages", { addItem: "npm:pi-tool-display" }, [] as unknown as Record<string, unknown>, {
 			settingsPath: TEST_SETTINGS,
 			backupDir: TEST_BACKUP_DIR,
 			validate: false,
@@ -107,7 +107,7 @@ describe("patchSettingsSectionWithBackup — 数组 removeItem", () => {
 		const result = patchSettingsSectionWithBackup(
 			"packages",
 			{ removeItem: { source: "git:github.com/catlain/pi-foo" } },
-			[],
+			[] as unknown as Record<string, unknown>,
 			{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, validate: false },
 		);
 
@@ -119,7 +119,7 @@ describe("patchSettingsSectionWithBackup — 数组 removeItem", () => {
 			packages: ["npm:pi-tool-display", "npm:pi-foo"],
 		});
 
-		const result = patchSettingsSectionWithBackup("packages", { removeItem: "npm:pi-foo" }, [], {
+		const result = patchSettingsSectionWithBackup("packages", { removeItem: "npm:pi-foo" }, [] as unknown as Record<string, unknown>, {
 			settingsPath: TEST_SETTINGS,
 			backupDir: TEST_BACKUP_DIR,
 			validate: false,
@@ -136,7 +136,7 @@ describe("patchSettingsSectionWithBackup — 数组 removeItem", () => {
 		const result = patchSettingsSectionWithBackup(
 			"packages",
 			{ removeItem: { source: "git:github.com/catlain/nonexistent" } },
-			[],
+			[] as unknown as Record<string, unknown>,
 			{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, validate: false },
 		);
 
@@ -162,7 +162,7 @@ describe("patchSettingsSectionWithBackup — 数组 replaceItem", () => {
 					replacement: { source: "git:github.com/catlain/pi-usage-stats", extensions: ["+index.ts"] },
 				},
 			},
-			[],
+			[] as unknown as Record<string, unknown>,
 			{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, validate: false },
 		);
 
@@ -182,7 +182,7 @@ describe("patchSettingsSectionWithBackup — 数组 replaceItem", () => {
 					replacement: { source: "npm:new-package" },
 				},
 			},
-			[],
+			[] as unknown as Record<string, unknown>,
 			{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, validate: false },
 		);
 
@@ -202,7 +202,7 @@ describe("patchSettingsSectionWithBackup — 数组 replaceItem", () => {
 					replacement: { source: "git:github.com/catlain/something" },
 				},
 			},
-			[],
+			[] as unknown as Record<string, unknown>,
 			{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR, validate: false },
 		);
 
@@ -219,7 +219,7 @@ describe("patchSettingsSectionWithBackup — 数组操作应创建备份", () =>
 		const result = patchSettingsSectionWithBackup(
 			"packages",
 			{ addItem: { source: "git:github.com/catlain/pi-foo" } },
-			[],
+			[] as unknown as Record<string, unknown>,
 			{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR },
 		);
 
@@ -233,7 +233,7 @@ describe("patchSettingsSectionWithBackup — 数组操作应创建备份", () =>
 		const result = patchSettingsSectionWithBackup(
 			"packages",
 			{ removeItem: { source: "git:github.com/catlain/pi-foo" } },
-			[],
+			[] as unknown as Record<string, unknown>,
 			{ settingsPath: TEST_SETTINGS, backupDir: TEST_BACKUP_DIR },
 		);
 
