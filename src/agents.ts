@@ -81,7 +81,7 @@ export function getAgentDescription(name: string, cwd?: string): string {
 			/* ignore */
 		}
 	}
-	return "read, grep, find, ls";
+	return "(未定义描述)";
 }
 
 /** 格式化为 description 中的子代理列表文本 */

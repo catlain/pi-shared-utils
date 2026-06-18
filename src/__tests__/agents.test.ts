@@ -55,7 +55,7 @@ describe("getAgentDescription", () => {
 	it("uses default description when no frontmatter", () => {
 		mockFs.readFileSync.mockReturnValue("plain content without frontmatter");
 		const result = getAgentDescription("coder");
-		expect(result).toBe("read, grep, find, ls");
+		expect(result).toBe("(未定义描述)");
 	});
 
 	it("uses default description when file read fails", () => {
@@ -63,14 +63,14 @@ describe("getAgentDescription", () => {
 			throw new Error("ENOENT");
 		});
 		const result = getAgentDescription("nonexistent");
-		expect(result).toBe("read, grep, find, ls");
+		expect(result).toBe("(未定义描述)");
 	});
 
 	it("uses default description when frontmatter has no description field", () => {
 		const content = ["---", "title: Agent", "---", "# Content"].join("\n");
 		mockFs.readFileSync.mockReturnValue(content);
 		const result = getAgentDescription("agent");
-		expect(result).toBe("read, grep, find, ls");
+		expect(result).toBe("(未定义描述)");
 	});
 
 	it("handles description with trailing whitespace", () => {
