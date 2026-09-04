@@ -15,9 +15,9 @@
  */
 
 import { existsSync } from "node:fs";
-import { homedir } from "node:os";
 import { join } from "node:path";
 import { withFileLock } from "./file-lock";
+import { SETTINGS_PATH as DEFAULT_SETTINGS_PATH } from "./paths";
 import type { SchemaError } from "./project-config";
 import { applyArrayPatch, isArrayPatch } from "./settings-array";
 import { rotateBackups } from "./settings-backup-rollback";
@@ -71,7 +71,7 @@ export function patchSettingsSectionWithBackup<T extends Record<string, unknown>
 	defaults: T,
 	options?: PatchBackupOptions,
 ): PatchBackupResult<T> {
-	const settingsPath = options?.settingsPath ?? join(homedir(), ".pi", "agent", "settings.json");
+	const settingsPath = options?.settingsPath ?? DEFAULT_SETTINGS_PATH;
 	const backupDir = options?.backupDir ?? getDefaultBackupDir(settingsPath);
 	const shouldBackup = options?.backup !== false;
 	const maxBackups = options?.maxBackups ?? 10;

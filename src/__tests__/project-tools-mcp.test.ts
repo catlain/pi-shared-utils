@@ -1,8 +1,13 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SETTINGS_PATH } from "../paths";
+
+// ── 沙箱隔离（vi.hoisted 在模块 import 前执行）──────────
+vi.hoisted(() => {
+	process.env.PI_AGENT_DIR = require("node:path").join(require("node:os").tmpdir(), "pi-shared-utils-test-sandbox");
+});
 import { clearProjectSettingsCache } from "../project-config";
 import { getDisabledTools, isToolDisabled } from "../project-tools";
 
@@ -20,14 +25,32 @@ function cleanupDir(dir: string) {
 	if (existsSync(dir)) rmSync(dir, { recursive: true });
 }
 
-/** 临时替换全局 settings.json 内容 */
+
+// ── 沙箱防护：确认所有路径都落在沙箱内，绝不触碰真身 ────
+const SANDBOX_AGENT_DIR = join(process.env.PI_AGENT_DIR as string);
+const REAL_AGENT_DIR = join(homedir(), ".pi", "agent");
+
+function assertSandbox() {
+	mkdirSync(SANDBOX_AGENT_DIR, { recursive: true });
+	if (!SETTINGS_PATH.startsWith(SANDBOX_AGENT_DIR) || SETTINGS_PATH.startsWith(REAL_AGENT_DIR)) {
+		throw new Error(
+			`沙箱失效：SETTINGS_PATH=${SETTINGS_PATH} 未落在沙箱 ${SANDBOX_AGENT_DIR} 内（真实全局目录=${REAL_AGENT_DIR}）。测试已中止以防覆写真实 settings.json`,
+		);
+	}
+}
+
 function mockGlobalSettings(content: Record<string, any>) {
-	const original = readFileSync(SETTINGS_PATH, "utf-8");
+	assertSandbox();
+	const original = existsSync(SETTINGS_PATH) ? readFileSync(SETTINGS_PATH, "utf-8") : "{}";
 	writeFileSync(SETTINGS_PATH, JSON.stringify(content, null, 2));
 	return () => writeFileSync(SETTINGS_PATH, original);
 }
 
 // ── getDisabledTools ────────────────────────────────────
+
+afterAll(() => {
+	delete process.env.PI_AGENT_DIR;
+});
 
 describe("getDisabledTools — 工具级禁用", () => {
 	beforeEach(() => {

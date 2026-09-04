@@ -109,6 +109,64 @@ describe("buffer limit", () => {
 	});
 });
 
+describe("drainHintsWithLabels", () => {
+	it("returns empty array when buffer empty", async () => {
+		const mod = await importEphemeral();
+		expect(mod.drainHintsWithLabels()).toEqual([]);
+	});
+
+	it("returns {text,label} pairs preserving order, with labels", async () => {
+		const mod = await importEphemeral();
+		mod.pushHint("hint1", "lbl1");
+		mod.pushHint("hint2", "lbl2");
+		const result = mod.drainHintsWithLabels();
+		expect(result).toEqual([
+			{ text: "hint1", label: "lbl1" },
+			{ text: "hint2", label: "lbl2" },
+		]);
+	});
+
+	it("hints without label get undefined label field", async () => {
+		const mod = await importEphemeral();
+		mod.pushHint("hint1", "lbl1");
+		mod.pushHint("hint2");
+		const result = mod.drainHintsWithLabels();
+		expect(result).toEqual([
+			{ text: "hint1", label: "lbl1" },
+			{ text: "hint2", label: undefined },
+		]);
+	});
+
+	it("clears buffer after drain: peekHints/peekLabels empty", async () => {
+		const mod = await importEphemeral();
+		mod.pushHint("hint1", "lbl1");
+		mod.pushHint("hint2", "lbl2");
+		mod.drainHintsWithLabels();
+		expect(mod.peekHints()).toBeNull();
+		expect(mod.peekLabels()).toEqual([]);
+		expect(mod.hasHints()).toBe(false);
+	});
+
+	it("preserves order and trim behavior at MAX_HINTS boundary", async () => {
+		const mod = await importEphemeral();
+		for (let i = 0; i < 102; i++) {
+			mod.pushHint(`hint-${i}`, `label-${i}`);
+		}
+		const result = mod.drainHintsWithLabels();
+		expect(result).toHaveLength(100);
+		expect(result[0]).toEqual({ text: "hint-2", label: "label-2" });
+		expect(result[99]).toEqual({ text: "hint-101", label: "label-101" });
+	});
+
+	it("old drainHints behavior unchanged: returns string|null, clears labels", async () => {
+		const mod = await importEphemeral();
+		mod.pushHint("hint1", "lbl1");
+		mod.pushHint("hint2", "lbl2");
+		expect(mod.drainHints()).toBe("hint1\n\nhint2");
+		expect(mod.peekLabels()).toEqual([]);
+	});
+});
+
 describe("multiple push then drain", () => {
 	it("push 3 hints without labels", async () => {
 		const mod = await importEphemeral();

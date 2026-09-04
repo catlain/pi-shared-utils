@@ -8,10 +8,8 @@
  *   patchSettingsSection("context", { distillThreshold: 3000 });
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
-import { join } from "node:path";
 
-const SETTINGS_PATH = join(homedir(), ".pi/agent/settings.json");
+import { SETTINGS_PATH } from "./paths";
 
 function readFull(): Record<string, any> {
 	try {

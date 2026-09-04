@@ -11,6 +11,7 @@ export {
 } from "./agents";
 export {
 	drainHints,
+	drainHintsWithLabels,
 	hasHints,
 	peekHints,
 	peekLabels,
