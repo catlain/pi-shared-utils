@@ -6,7 +6,10 @@ import { SETTINGS_PATH } from "../paths";
 
 // ── 沙箱隔离（vi.hoisted 在模块 import 前执行）──────────
 vi.hoisted(() => {
-	process.env.PI_AGENT_DIR = require("node:path").join(require("node:os").tmpdir(), "pi-shared-utils-test-sandbox");
+	// 每个测试文件独立沙箱（uuid 对每个文件的模块实例唯一），
+	// 防止消费方并行 vitest 时多文件并发写同一沙箱 settings.json 竞态
+	const uniq = require("node:crypto").randomUUID().slice(0, 8);
+	process.env.PI_AGENT_DIR = require("node:path").join(require("node:os").tmpdir(), `pi-shared-utils-sandbox-${uniq}`);
 });
 import {
 	clearProjectSettingsCache,
@@ -16,7 +19,7 @@ import {
 } from "../project-config";
 import { getDisabledMcpServers, getEnabledTools } from "../project-tools";
 
-const TEST_DIR = join(tmpdir(), "pi-shared-utils-test");
+const TEST_DIR = join(process.env.PI_AGENT_DIR as string, "pi-shared-utils-test");
 
 // ── 测试辅助 ────────────────────────────────────────────
 
@@ -54,6 +57,7 @@ function mockGlobalSettings(content: Record<string, any>) {
 // ── 测试 ─────────────────────────────────────────────────
 
 afterAll(() => {
+	rmSync(SANDBOX_AGENT_DIR, { recursive: true, force: true });
 	delete process.env.PI_AGENT_DIR;
 });
 
@@ -62,6 +66,9 @@ describe("project-config", () => {
 		cleanupDir(TEST_DIR);
 		clearProjectSettingsCache();
 		mkdirSync(TEST_DIR, { recursive: true });
+		// 确保沙箱内全局 settings.json 存在（此前依赖上一轮运行遗留的共享沙箱文件，隐性依赖）
+		assertSandbox();
+		if (!existsSync(SETTINGS_PATH)) writeFileSync(SETTINGS_PATH, "{}");
 	});
 	afterEach(() => {
 		cleanupDir(TEST_DIR);

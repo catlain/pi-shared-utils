@@ -6,12 +6,15 @@ import { SETTINGS_PATH } from "../paths";
 
 // ── 沙箱隔离（vi.hoisted 在模块 import 前执行）──────────
 vi.hoisted(() => {
-	process.env.PI_AGENT_DIR = require("node:path").join(require("node:os").tmpdir(), "pi-shared-utils-test-sandbox");
+	// 每个测试文件独立沙箱（uuid 对每个文件的模块实例唯一），
+	// 防止消费方并行 vitest 时多文件并发写同一沙箱 settings.json 竞态
+	const uniq = require("node:crypto").randomUUID().slice(0, 8);
+	process.env.PI_AGENT_DIR = require("node:path").join(require("node:os").tmpdir(), `pi-shared-utils-sandbox-${uniq}`);
 });
 import { clearProjectSettingsCache } from "../project-config";
 import { getDisabledTools, isToolDisabled } from "../project-tools";
 
-const TEST_DIR = join(tmpdir(), "pi-shared-utils-mcp-tools-test");
+const TEST_DIR = join(process.env.PI_AGENT_DIR as string, "pi-shared-utils-mcp-tools-test");
 
 // ── 测试辅助 ────────────────────────────────────────────
 
@@ -49,6 +52,7 @@ function mockGlobalSettings(content: Record<string, any>) {
 // ── getDisabledTools ────────────────────────────────────
 
 afterAll(() => {
+	rmSync(SANDBOX_AGENT_DIR, { recursive: true, force: true });
 	delete process.env.PI_AGENT_DIR;
 });
 
