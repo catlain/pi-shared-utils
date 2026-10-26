@@ -29,6 +29,12 @@ export {
 	scanMemoryDir,
 } from "./memory-parser";
 export {
+	isArchDocPath,
+	isConstitutionalDocPath,
+	isOpenspecDesignDocPath,
+	isSkillMdPath,
+} from "./protected-docs";
+export {
 	AGENT_DIR,
 	AGENTS_DIR,
 	GLOBAL_RULES_PATH,
