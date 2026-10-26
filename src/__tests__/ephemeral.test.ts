@@ -53,6 +53,15 @@ describe("pushHint and peek", () => {
 		expect(mod.peekHints()).toBe("提示B");
 	});
 
+	it("空 label 归一化为无 label（'' 等价 undefined，源头单点保证）", async () => {
+		const mod = await importEphemeral();
+		mod.pushHint("提示C", "");
+		expect(mod.peekLabels()).toEqual([]);
+		// drain 配对同样拿不到空串 label
+		const drained = mod.drainHintsWithLabels();
+		expect(drained[0]?.label).toBeUndefined();
+	});
+
 	it("multiple hints joined by double newline", async () => {
 		const mod = await importEphemeral();
 		mod.pushHint("first");

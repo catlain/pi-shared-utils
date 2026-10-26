@@ -21,7 +21,10 @@ const _labels: (string | undefined)[] = [];
  */
 export function pushHint(hint: string, label?: string): void {
 	_hints.push(hint);
-	_labels.push(label);
+	// 空 label 归一化为 undefined（占位存储仍对齐，但语义上“空 label 等价无 label”）：
+	// 避免消费方（如 shepherd 的 notifySummary labels join）拿到 '' 空段。
+	// 契约由源头单点保证（ADR-0004 同精神），消费方无需各自包装。
+	_labels.push(label || undefined);
 	// 超出上限时丢弃最旧的（两者同步）
 	if (_hints.length > MAX_HINTS) {
 		const excess = _hints.length - MAX_HINTS;
