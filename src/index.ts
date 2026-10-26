@@ -34,6 +34,7 @@ export {
 	isOpenspecDesignDocPath,
 	isSkillMdPath,
 } from "./protected-docs";
+export { estimateTokens } from "./tokens";
 export {
 	AGENT_DIR,
 	AGENTS_DIR,
