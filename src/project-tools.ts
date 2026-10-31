@@ -161,6 +161,11 @@ export function isToolDisabled(toolName: string, cwd: string): boolean {
 	return matchesPattern(toolName, patterns);
 }
 
+/**
+ * @deprecated MCP server 启停已统一由 pi 原生字段管理：`mcp.json` 的 `enabled` / `/mcp` 命令 / 项目级 `.pi/mcp.json` 的 `{"mcpServers":{"<name>":{"enabled":false}}}` 覆盖。
+ * （背景：openspec change mcp-converge-pi-native，mcp-lite 转发栈退役后无生产消费者）
+ * 保留 API 一个迭代周期供存量调用方迁移，之后移除。
+ */
 export function getDisabledMcpServers(cwd: string): string[] {
 	const globalMcp = readGlobalSection("mcp");
 	const globalDisabled: string[] = globalMcp.disabled ?? [];
