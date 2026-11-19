@@ -41,13 +41,20 @@ export function createLLMCaller(
 		signal?: AbortSignal,
 	): Promise<string> => {
 		let model = ctx.model;
+		let fellBack = false;
 		if (modelId) {
 			const sepIdx = modelId.indexOf("/");
 			if (sepIdx > 0) {
 				const provider = modelId.slice(0, sepIdx);
 				const id = modelId.slice(sepIdx + 1);
 				model = ctx.modelRegistry.find(provider, id) ?? ctx.model;
+				fellBack = model === ctx.model;
+			} else {
+				fellBack = true;
 			}
+		}
+		if (fellBack) {
+			console.warn(`${label} 指定模型 "${modelId}" 不可解析/未找到，回退会话模型 ${ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : "(无)"}`);
 		}
 		if (!model) {
 			throw new Error(`${label} 模型不可用: ${modelId ?? "session model"}`);
